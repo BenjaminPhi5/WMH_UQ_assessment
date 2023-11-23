@@ -1,1 +1,1 @@
-python /home/s2208943/ipdis/WMH_uncertainty_exploration/trustworthai/journal_run/training/new_scripts/train_model.py --ckpt_dir=/disk/scratch_big/s2208943/results/journal_models/ --model_name=check_cluster_working --max_epochs=2
+python /home/s2208943/ipdis/WMH_UQ_assessment/trustworthai/journal_run/training/new_scripts/train_model.py --ckpt_dir=/disk/scratch_big/s2208943/results/journal_models/ --model_name=check_cluster_working --max_epochs=2
