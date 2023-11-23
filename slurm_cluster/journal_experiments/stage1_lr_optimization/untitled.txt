@@ -1,0 +1,17 @@
+rm trustworthai/models/uq_models/initial_variants/final_trains/evidential/
+rm trustworthai/models/uq_models/initial_variants/hypermodel/
+rm trustworthai/models/uq_models/testing notebooks/UNet Testing.ipynb
+rm trustwrm orthai/run/evaluation/example_script/debug_test.ipynb
+rm trustwortrm hai/run/model_load/test_clinscores/results/images/GT_87_15.png
+rm trustworthai/run/model_load/test_clinscores/results/images/umap_1_25.png
+rm trustworthai/run/results_bad_loss/evidential/images/mean_0_25.png
+rm trustworthai/run/results_indomain/SSN_Ind01/images/flair_0_25.png
+rm trustworthai/run/results_indomain/SSN_Ind01/images/umap_0_25.png
+rm trustworthai/run/results_indomain/ensemble01/images/GT_0_25.png
+rm trustworthai/run/results_indomain/mc_drop01/images/flair_0_25.png
+rm trustworthai/run/results_indomain/mc_drop01/images/umap_0_25.png
+rm trustworthai/run/results_out_domain/SSN/images/flair_0_25.png
+rm trustworthai/run/results_out_domain/SSN/images/umap_0_25.png
+rm trustworthai/run/results_out_domain/SSN_Ind/images/mean_0_25.png
+rm trustworthai/run/results_out_domain/mc_drop/images/mean_0_25.png
+rm trustworthai/run/results_out_domain/softmax_ent_dice+xent/images/mean_0_25.png
