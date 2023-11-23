@@ -1,0 +1,9 @@
+collected 28th feb 20223
+
+method: deterministic_dice_split0, ece: 0.19709458947181702
+method: deterministic_tversky_split0, ece: 0.5235986709594727
+method: deterministic_xent_split0, ece: 0.03928937390446663
+method: deterministic_dice+xent_split0, ece: 0.07737492024898529
+method: deterministic_brier_split0, ece: 0.040404342114925385
+method: deterministic_tversky07_split0, ece: 0.232199564576149
+method: deterministic_tversky09_split0, ece: 0.4017312526702881

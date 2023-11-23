@@ -1,0 +1,9 @@
+lets just try using a deep learning model now. I can take a resnet 18, and train it to predicit fazekas. I will need predicted uncertainty maps for each technique,
+along with the training data. Use a 0.15 validation and test split. see if I can get a better prediction. I will include the information that I have, and try to tune the model.
+I can give the model:
+
+just the clinical score data:, then a model with the mean segmentation and flair, and then mean seg and uncertainty and flair, and see how it goes. See if we get a significant improvement. That
+would be great. Nice. Okay, time for lunch, and then I can set this up. Good!
+If I have a 2.5D model it can have 3 slices picked per patient, as a predictor. need to pick those three slices carefully though.... I will have a very small dataset to train my model with
+so maybe I should have a very small model... I can't train on patches to do deep, so this might be quite involved actually... hmm... use my standard augmentation pipeline, and
+pick three random slices from within the centre of the brain roughly.

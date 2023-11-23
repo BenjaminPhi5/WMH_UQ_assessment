@@ -1,0 +1,2 @@
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/eval_script_new.py --name=softmax_ent --splits=6 --stride=2
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/eval_script_new.py --name=evidential --splits=6 --stride=2

@@ -1,0 +1,11 @@
+[B,dev,stats] = mnrfit(x=x_comb, y=fazekas, 'model','ordinal');
+
+tab.fazekas
+
+stats gives B, standard error, and p. Then if the p < 0.05
+multinomial logistic regression, see the help for the test
+
+in the x, there are the clinical scores, diabetes, age, etc. There are 7. the results
+might be 10 numbers or whatever. The last 7 are in the order in the covariates and the precdictor are, the p values are the pvalues in the last 7
+
+fazekas is 0-6 total, will get the p values for each class.

@@ -1,0 +1,1 @@
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/model_load/training_fazekas_3_script.py --umap_model=SSN_Ens --split=5 --input_type=pred --target=PVWMH

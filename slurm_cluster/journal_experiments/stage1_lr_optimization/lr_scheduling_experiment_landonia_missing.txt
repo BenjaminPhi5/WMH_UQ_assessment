@@ -1,0 +1,1 @@
+python /home/s2208943/ipdis/WMH_uncertainty_exploration/trustworthai/journal_run/training/new_scripts/train_model.py --ckpt_dir=/disk/scratch_big/s2208943/results/journal_models/ --model_name=landonia_stepdecay50_lr0.01_es100 --max_epochs=1000 --early_stop_patience=100 --lr=0.01 --scheduler_step_size=50

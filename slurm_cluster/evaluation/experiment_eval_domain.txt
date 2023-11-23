@@ -1,0 +1,9 @@
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/eval_script_new_domain.py --name=ensemble --splits=3 --stride=2
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/eval_script_new_domain.py --name=SSN_ensemble --splits=3 --stride=2
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/eval_script_new_domain.py --name=SSN_ensemble_mean --splits=3 --stride=2
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/eval_script_new_domain.py --name=softmax_ent --splits=3 --stride=2
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/eval_script_new_domain.py --name=evidential --splits=3 --stride=2
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/eval_script_new_domain.py --name=SSN --splits=3 --stride=2
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/eval_script_new_domain.py --name=SSN_Ind --splits=3 --stride=2
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/eval_script_new_domain.py --name=P-Unet --splits=3 --stride=2
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/eval_script_new_domain.py --name=mc_drop --splits=3 --stride=2

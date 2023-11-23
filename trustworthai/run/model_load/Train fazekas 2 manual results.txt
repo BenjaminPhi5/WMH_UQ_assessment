@@ -1,0 +1,17 @@
+t = 0, v= 1, augmentation on for validation (looped many times)
+runs = 30 on test (augmentation off! for test)
+using smaller model,
+early stop patience = 7
+
+split 0, DWMH, umap on
+val loss per model : [0.8151, 0.8261, 0.8562, 0.8207, 0.7948]
+
+eval loop results (mode, mean, top2):
+eval_results
+[(tensor(0.7619), tensor(0.7757), tensor(0.9639)),
+ (tensor(0.8333), tensor(0.8118), tensor(0.9472)),
+ (tensor(0.7143), tensor(0.7368), tensor(0.9472)),
+ (tensor(0.7619), tensor(0.7771), tensor(0.9285)),
+ (tensor(0.7143), tensor(0.7215), tensor(0.9590))]
+ 
+model closest to mean val score is number 3. so pick model with performance (tensor(0.7619), tensor(0.7771), tensor(0.9285)), which is quite strong. Now try with umap off....

@@ -1,0 +1,2 @@
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/eval_script_badloss.py --name=evidential --splits=6 --stride=2
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/eval_script_badloss.py --name=mc_drop --splits=6 --stride=2

@@ -1,0 +1,2 @@
+python /home/s2208943/ipdis/UQ_WMH_methods/twaidata/WM_masks_for_damage_metric/generate_WM_masks.py --type _T1_BET.nii.gz
+python /home/s2208943/ipdis/UQ_WMH_methods/twaidata/WM_masks_for_damage_metric/generate_WM_masks.py --type _T1_BIAS_CORR.nii.gz

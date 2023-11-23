@@ -1,0 +1,1 @@
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/eval_script_new.py --name=SSN_ensemble --splits=6 --stride=2

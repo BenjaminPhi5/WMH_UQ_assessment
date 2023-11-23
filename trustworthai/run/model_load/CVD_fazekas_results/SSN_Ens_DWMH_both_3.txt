@@ -1,0 +1,28 @@
+
+val loss: 0.6139014959335327mean acc test: 0.6410256624221802mean acc val: 0.7931034564971924mean acc train: 0.7584269642829895
+checkpoint:
+/disk/scratch_big/s2208943/CVD_fazekas/SSN_Ens_DWMH_both_3/epoch=15-step=240.ckpt
+-----------------------------------
+
+val loss: 0.6653574109077454mean acc test: 0.6666666865348816mean acc val: 0.7586206793785095mean acc train: 0.7528089880943298
+checkpoint:
+/disk/scratch_big/s2208943/CVD_fazekas/SSN_Ens_DWMH_both_3/epoch=12-step=195.ckpt
+-----------------------------------
+
+val loss: 0.6739823818206787mean acc test: 0.6666666865348816mean acc val: 0.7241379022598267mean acc train: 0.7471910119056702
+checkpoint:
+/disk/scratch_big/s2208943/CVD_fazekas/SSN_Ens_DWMH_both_3/epoch=17-step=270.ckpt
+-----------------------------------
+
+val loss: 0.6533790826797485mean acc test: 0.692307710647583mean acc val: 0.7586206793785095mean acc train: 0.7303370833396912
+checkpoint:
+/disk/scratch_big/s2208943/CVD_fazekas/SSN_Ens_DWMH_both_3/epoch=9-step=150.ckpt
+-----------------------------------
+
+val loss: 0.625089168548584mean acc test: 0.6410256624221802mean acc val: 0.7931034564971924mean acc train: 0.7808988690376282
+checkpoint:
+/disk/scratch_big/s2208943/CVD_fazekas/SSN_Ens_DWMH_both_3/epoch=16-step=255.ckpt
+-----------------------------------
+
+
+landonia20.inf.ed.ac.uk

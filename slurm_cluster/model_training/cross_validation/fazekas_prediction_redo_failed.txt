@@ -1,0 +1,13 @@
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/model_load/training_fazekas_CNNs.py --target=DWMH --split=3 --include_umaps=False
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/model_load/training_fazekas_CNNs.py --target=DWMH --split=5 --include_umaps=False
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/model_load/training_fazekas_CNNs.py --target=PVWMH --split=1 --include_umaps=True
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/model_load/training_fazekas_CNNs.py --target=PVWMH --split=2 --include_umaps=True
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/model_load/training_fazekas_CNNs.py --target=PVWMH --split=5 --include_umaps=True
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/model_load/training_fazekas_CNNs.py --target=PVWMH --split=0 --include_umaps=False
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/model_load/training_fazekas_CNNs.py --target=PVWMH --split=1 --include_umaps=False
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/model_load/training_fazekas_CNNs.py --target=PVWMH --split=2 --include_umaps=False
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/model_load/training_fazekas_CNNs.py --target=PVWMH --split=3 --include_umaps=False
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/model_load/training_fazekas_CNNs.py --target=PVWMH --split=4 --include_umaps=False
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/model_load/training_fazekas_CNNs.py --target=PVWMH --split=5 --include_umaps=False
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/model_load/training_fazekas_CNNs.py --target=total_fazekas --split=0 --include_umaps=True
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/model_load/training_fazekas_CNNs.py --target=total_fazekas --split=1 --include_umaps=True

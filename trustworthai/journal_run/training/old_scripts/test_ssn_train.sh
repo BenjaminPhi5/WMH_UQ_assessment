@@ -1,0 +1,1 @@
+python ssn_train.py --ckpt_dir='/media/benp/NVMEspare/model_dump/t1/t2/' --model_name="ssn_test_rw" --max_epochs=1 --cross_validate=True, --cv_split=0 --dataset='chal'

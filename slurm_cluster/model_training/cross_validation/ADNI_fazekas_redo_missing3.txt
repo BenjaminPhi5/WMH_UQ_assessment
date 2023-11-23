@@ -1,0 +1,1 @@
+python /home/s2208943/ipdis/UQ_WMH_methods/trustworthai/run/ADNI_300_analysis/ADNI_model_train.py --target=WMH_Deep --split=0 --input_type=ent

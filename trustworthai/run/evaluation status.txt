@@ -1,0 +1,47 @@
+1) loss functions version calibration for a determinstic model, showing that combo loss imporves calibration while 'behaving' similarly to Dice. Done.
+
+2) Look at what uncertainty maps show. Pick a bunch of slices for maria to analyse (we can zoom in on the images afterwards if that is preferred).
+I need to save, the GT, the FLAIR, the mean, the samples, and the uncertainty map.
+It also needs to save all the samples for that selected image (just 10 samples this time).
+
+3) calibration using the uncertainty maps as the confidence value. Does this per individual and computes the overall ECE as the number of samples increases.
+Need to do this at the optimum temperature for a fair comparison.
+
+
+list of stuff I want to have:
+
+[-] temperature scaling of each model Citing this paper, ensembles should be pooled and then calibrated: https://arxiv.org/pdf/2007.08792.pdf
+
+[x] 1) loss funcs and calibration
+
+[x] 2) examination of uncertainty maps 
+
+[x] 3) some way of assessing calibration of our models. 
+
+[x] 4) SUEO/PAVPU/Brats
+
+[x] 5) coverage of clusters in 2D slices
+
+[x] 6) sample diversity of slices when sorted by volume (and improvment on best volume)
+
+[x] 7) Energy distance Done but I only have one sample so is this a bit doj? (also I did not put the slice samples in sorted order...)
+
+[-] 8) TP, FP, FN distributions per technique (that includes those plots I suppose...
+
+[x] 9) Disentangle epistemic and aleatoric where approporiate (that may be a separate and harder task)
+
+[ ] 10) Predict Fazekas
+
+[ ] 11) Predict Dice (using the Umap). Nice.
+
+[x] 12) challenge metrics (with standard error values!!)
+
+[x] 13) include deterministic model (note that we need to use a different ece function and need to use ent map on softmax, and each time we use samples don't normalize.. (or I could boj them))
+
+[x] 14) include evidential in some way
+
+[x] 15) sample diversity over wmh volume plot
+
+[ ] 16) chat about how we need to calibrate to get good uncertainty maps (look TP, TN, FN plots somehow..., use the plot I already use) (and what happens to an uncalibrated MC-Drop / ensemble etc)
+
+[ ] 17) building the whole thing into one pipeline and running it for every method.

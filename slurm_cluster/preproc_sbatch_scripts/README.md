@@ -1,0 +1,3 @@
+- run gen_exp_scripts to generate the experiment files for the first preprocessing stage
+- run sbatch array jobs on the ed_inhouse and wmhchallenge preprocess scripts, (sun_experiment -b sbatchfile -e experiment_file)
+- run sbatch stage_2_preprocess.sh when all the processes for stage 1 have finished.

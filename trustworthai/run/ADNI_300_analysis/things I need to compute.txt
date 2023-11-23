@@ -1,0 +1,33 @@
+my previous code was accidently only using the one split.
+
+I now have in best checkpoints for ADNI_300_Fazekas_CV_run2 which are the best on the test set for the pred and the pred + ent.
+The confusion matrix shows good separation between 1 and 2 and improvements over 0 and 1.
+
+pred + ent is consistently better, and there is some good separation there.
+
+Things to do: Maria asks for doing total fazekas prediction, and
+for doing prediction of PVWMH because the confusion matrix may be useful.
+
+I also need to do:
+
+The other dataset
+EMA, more augmentation, rebalancing the dataset with the dataset balancer. see how it goes.
+I also need to do the comparison on the ent only vs pred only best on the val dataset.
+
+I need to get predictions for SSN-Ensemble and SSN-Ensemble Mean also for the ADNI fazekas data. See which one it best perhaps. Nice.
+
+- [ ] get predictions for emsemble SSN types for ADNI
+- [ ] redo the ADNI analysis with the SSN ensemble data (make it save to a differnt subfolder with the results (and change the output checkpoints to include input type))
+- [ ] ensure all prediction types are there for CVD dataset
+- [ ] modify the code to use the ADNI style code for the CVD dataset
+- [ ] redo the CVD fazekas deep and pv fazekas training with the new model type
+- [ ] modify CVD code to use smaller model, different augmentation structure, using set slices in 2.5D model
+- [ ] change the model to store the results scripts in new files
+- [ ] look at ema training, more augmentation, balanced dataloader whether it keeps performance the same...
+- [ ] do a comparison with having no covariates
+- [ ] do a comparison with just having segmentation volume as an input parameter
+- [ ] do a comparison with WMH damage score as a parameter
+- [ ] try predicting covariates from the uncertainty map alone to see which are most important (and compare it to the performance over just the other covariates)
+
+# okay, so I am going to try, resampling in the dataloader, ema, more augmentation, and see if that improves the variance problem that I am experiencing.
+# for the presentation I NEED an example of a model just trained by itself. Also get the conf

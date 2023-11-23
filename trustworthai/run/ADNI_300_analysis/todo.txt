@@ -1,0 +1,9 @@
+debugging my code: 
+
+I should now check that patient's scans and their fazekas scores are matching what is in the spreadsheet.
+Also check that the clinical scores are correct for each patient.
+I also need to get to the bottom of what all the variance is about (is it just due to random seed for example? I can try and fix the random seed
+to force this. I can also try some of the encoders from segment anything to modify the number of input channels while using pretrained models for example.
+I could also see how playing around with the loss function weighting and and learning rate might help, I just really want to get the variance down.
+
+I have a serious problem with my code because it looks like some individuals have been duplicated.
