@@ -120,7 +120,7 @@ def main(args):
     # deal with scratch / scratch big issue
     if "scratch/" in args.ckpt_dir:
         if not os.path.exists("/disk/scratch/"):
-            args.ckpt_dir = args.ckpy_dir.replace("scratch", "scratch_big")
+            args.ckpt_dir = args.ckpt_dir.replace("scratch", "scratch_big")
             
     
     # setup xent reweighting factor
