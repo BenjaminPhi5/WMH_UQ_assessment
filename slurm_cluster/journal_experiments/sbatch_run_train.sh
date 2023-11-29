@@ -63,6 +63,7 @@ if [ -d "/disk/scratch_big" ]; then
 else
   SCRATCH_DISK=/disk/scratch
 fi
+SCRATCH_HOME=${SCRATCH_DISK}/${USER}
 mkdir -p ${SCRATCH_HOME}
 
 # Activate your conda environment
