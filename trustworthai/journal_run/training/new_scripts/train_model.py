@@ -86,6 +86,10 @@ def construct_parser():
     # training paradigm arguments
     parser.add_argument('--lr', default=2e-4, type=float)
     parser.add_argument('--dropout_p', default=0.0, type=float)
+    parser.add_argument('--encoder_dropout1', default=0, type=int)
+    parser.add_argument('--encoder_dropout2', default=0, type=int)
+    parser.add_argument('--decoder_dropout1', default=0, type=int)
+    parser.add_argument('--decoder_dropout2', default=0, type=int)
     parser.add_argument('--max_epochs', default=100, type=int)
     parser.add_argument('--early_stop_patience', default=15, type=int)
     parser.add_argument('--scheduler_type', default='step', type=str)

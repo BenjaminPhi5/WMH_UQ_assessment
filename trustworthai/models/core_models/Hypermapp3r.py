@@ -5,7 +5,7 @@ from trustworthai.models.building_blocks.hypermapp3r_blocks import *
 import torchvision.transforms.functional as TF
 
 class HyperMapp3r(nn.Module):
-    def __init__(self,dropout_p = 0., encoder_sizes=[16,32,64,128,256], inchannels=3, outchannels=2, p_unet_hook=False):
+    def __init__(self,dropout_p = 0., encoder_sizes=[16,32,64,128,256], inchannels=3, outchannels=2, p_unet_hook=False, encoder_dropout1=0, encoder_dropout2=0, decoder_dropout1=0, decoder_dropout2=0):
         super().__init__()
         self.out_channels = outchannels
         self.dropout_p = dropout_p
@@ -22,7 +22,7 @@ class HyperMapp3r(nn.Module):
         ])
         
         self.res_blocks = nn.ModuleList([
-            HmResBlock(c, dropout_p) for c in encoder_sizes
+            HmResBlock(c, dropout_p, encoder_dropout1, encoder_dropout2) for c in encoder_sizes
         ])
         
         # decoder section
@@ -31,7 +31,7 @@ class HyperMapp3r(nn.Module):
         ])
         
         self.feature_blocks = nn.ModuleList([
-            HmFeatureBlock(encoder_sizes[l - i]) for i in range(l-1)
+            HmFeatureBlock(encoder_sizes[l - i], dropout_p, decoder_dropout1, decoder_dropout2) for i in range(l-1)
         ])
         
         

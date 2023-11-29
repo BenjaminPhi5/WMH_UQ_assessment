@@ -15,9 +15,15 @@ def load_deterministic(args):
         dropout_p=args.dropout_p,
         encoder_sizes=encoder_sizes,
         inchannels=3,
-        outchannels=2
+        outchannels=2,
+        encoder_dropout1=args.encoder_dropout1,
+        encoder_dropout2=args.encoder_dropout2,
+        decoder_dropout1=args.decoder_dropout1,
+        decoder_dropout2=args.decoder_dropout2,
     )
     
+    # this line is redundant but removing it will require retraining
+    # as the models won't load correctly anymore...
     model_raw = Deterministic(base_model).cuda()
 
     loss_name = args.loss_name
