@@ -55,8 +55,11 @@ set -e
 # N.B. disk could be at /disk/scratch, or /disk/scratch_fast. Check
 # yourself using an interactive session, or check the docs:
 #     http://computing.help.inf.ed.ac.uk/cluster-computing
-SCRATCH_DISK=/disk/scratch
-SCRATCH_HOME=${SCRATCH_DISK}/${USER}
+if [ -d "/disk/scratch_big" ]; then
+  SCRATCH_DISK=/disk/scratch_big
+else
+  SCRATCH_DISK=/disk/scratch
+fi
 mkdir -p ${SCRATCH_HOME}
 
 # Activate your conda environment
