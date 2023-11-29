@@ -77,11 +77,11 @@ def load_data(dataset="ed", test_proportion=0.15, validation_proportion=0.15, se
     
     if not dataloader2d_only:
         return {
-            "train_datset3d":train_dataset_3d,
+            "train_dataset3d":train_dataset_3d,
             "val_dataset3d":val_dataset_3d,
             "test_dataset3d":test_dataset_3d,
 
-            "train_datset2d":train_dataset,
+            "train_dataset2d":train_dataset,
             "val_dataset2d":val_dataset,
             "test_dataset2d":test_dataset,
 
@@ -165,7 +165,7 @@ class StandardDataRetriever():
 
         if not dataloader2d_only:
             return {
-                "train_datset3d":train_dataset_3d,
+                "train_dataset3d":train_dataset_3d,
                 "val_dataset3d":val_dataset_3d,
                 "test_dataset3d":test_dataset_3d,
 
