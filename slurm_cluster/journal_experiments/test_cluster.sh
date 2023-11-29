@@ -11,4 +11,4 @@ set -e
 # Activate your conda environment
 CONDA_ENV_NAME=wmh
 echo "Activating conda environment: ${CONDA_ENV_NAME}"
-conda activate ${CONDA_ENV_NAME}
+source activate ${CONDA_ENV_NAME}
