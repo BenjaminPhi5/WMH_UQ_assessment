@@ -117,9 +117,13 @@ def main(args):
     except:
         raise ValueError(f"argument model_type should be one of {MODEL_LOADERS.keys()} not {args.model_type}")
         
-    # setup xent reweighting factor
+    # deal with scratch / scratch big issue
+    if "scratch/" in args.ckpt_dir:
+        if not os.path.exists("/disk/scratch/"):
+            args.ckpt_dir = args.ckpy_dir.replace("scratch", "scratch_big")
+            
     
-
+    # setup xent reweighting factor
     XENT_VOXEL_RESCALE = VOXELS_TO_WMH_RATIO - (1-args.empty_slice_retention) * (VOXELS_TO_WMH_RATIO - VOXELS_TO_WMH_RATIO_EXCLUDING_EMPTY_SLICES)
 
     XENT_WEIGHTING = XENT_VOXEL_RESCALE/2
