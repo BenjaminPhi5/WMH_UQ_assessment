@@ -95,7 +95,7 @@ echo "Moving input data to the compute node's scratch space: $SCRATCH_DISK"
 home_dir=/home/${USER}/ipdis/data/preprocessed_data/collated
 ed_home_dir=${home_dir}/EdData
 wmh_home_dir=${home_dir}/WMH_challenge_dataset
-scratch_dir=/disk/scratch/${USER}/ipdis/preprep/out_data/collated
+scratch_dir=${SCRATCH_HOME}/ipdis/preprep/out_data/collated
 ed_scratch=${scratch_dir}/EdData
 wmh_scratch=${scratch_dir}/WMH_challenge_dataset
 
@@ -130,7 +130,7 @@ echo "Command ran successfully!"
 
 echo "Moving output data back to DFS"
 
-result_path=/disk/scratch/${USER}/results/journal_models
+result_path=${SCRATCH_HOME}/results/journal_models
 result_dest_path=/home/${USER}/ipdis/results/journal_models
 rsync --archive --update --compress --progress ${result_path}/ ${result_dest_path}
 
