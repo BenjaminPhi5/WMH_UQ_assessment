@@ -14,7 +14,8 @@ def load_p_unet(args):
     
     model = ProbabilisticUnet(base_model, input_channels=3, num_classes=2, num_filters=[16, 32, 64, 128, 256], latent_dim=args.latent_dim, no_convs_fcomb=4, beta=args.kl_beta)
 
-    kl_factor = 1/args.batch_size
-    loss = punet_loss(args.xent_factor, args.dice_factor, args.punet_sample_dice_coeff, kl_factor, args.dice_empty_slice_weight)
+    # kl_factor = 1/args.batch_size
+    kl_factor = 1
+    loss = punet_loss(args.xent_factor * args.xent_reweighting, args.dice_factor, args.punet_sample_dice_coeff, kl_factor, analytic_kl=args.analytic_kl)
     
     return model, loss, loss

@@ -70,10 +70,11 @@ def construct_parser():
     parser.add_argument('--kl_factor', default=0.1, type=float)
     parser.add_argument('--kl_anneal_count', default=452*4, type=int)
     parser.add_argument('--use_mle', default=0, type=int)
+    parser.add_argument('--analytic_kl', default=0, type=int)
     
     # p-unet arguments
     parser.add_argument('--kl_beta', default=10.0, type=float)
-    parser.add_argument('--use_prior_for_dice', default=False, type=bool)
+    parser.add_argument('--use_prior_for_dice', default="false", type=str)
     parser.add_argument('--punet_sample_dice_coeff', default=0.05, type=float)
     parser.add_argument('--latent_dim', default=12, type=int)
     
@@ -112,6 +113,7 @@ def main(args):
     
     # sanitise arguments
     args.overwrite = True if args.overwrite.lower() == "true" else False
+    args.use_prior_for_dice = True if args.use_prior_for_dice.lower() == "true" else False
     print(args)
     try:
         model_loader = MODEL_LOADERS[args.model_type]

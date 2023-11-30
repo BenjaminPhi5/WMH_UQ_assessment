@@ -90,4 +90,4 @@ class SsnNetworkMuAndSamplesLossWrapper(nn.Module):
         for s in samples:
             loss += self.loss(s, target)
         
-        return dice + ((self.sample_loss_coeff*loss) / self.samples)
+        return (dice + ((self.sample_loss_coeff*loss) / self.samples)) / (1 + self.sample_loss_coeff)

@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms.functional as transforms
 from torch.autograd import Variable
-from trustworthai.utils.losses_and_metrics.xent import mean_sum_xent_loss
+from trustworthai.utils.losses_and_metrics.xent import mean_sum_xent_loss, xent_loss
 import numpy as np
 
 def truncated_normal_(tensor, mean=0, std=1):
@@ -244,7 +244,7 @@ class ProbabilisticUnet(nn.Module):
         self.z_prior_sample = 0        
         
         self.unet = base_model
-        self.xent_loss = mean_sum_xent_loss()
+        self.xent_loss = xent_loss(None, reduction="mean")#mean_sum_xent_loss()
         
         self.prior = AxisAlignedConvGaussian(self.input_channels, self.num_filters, self.no_convs_per_block, self.latent_dim,  self.initializers,).to(device)
         self.posterior = AxisAlignedConvGaussian(self.input_channels, self.num_filters, self.no_convs_per_block, self.latent_dim, self.initializers, posterior=True).to(device)
