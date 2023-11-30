@@ -31,7 +31,7 @@ def load_ssn(args):
         empty_slice_weight=args.dice_empty_slice_weight,
         mc_samples=args.ssn_mc_samples,
         dice_factor=args.dice_factor,
-        xent_factor=args.xent_factor,
+        xent_factor=args.xent_factor * args.xent_reweighting,
         sample_dice_coeff=args.ssn_sample_dice_coeff,
     )
     

@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
-from trustworthai.utils.losses_and_metrics.dice_loss import DiceLossWithWeightedEmptySlices
+from trustworthai.utils.losses_and_metrics.dice_loss import DiceLossWithWeightedEmptySlices, SoftDiceV2
 import math
 
 
@@ -9,7 +9,7 @@ class SSNCombinedDiceXentLoss(nn.Module):
     def __init__(self, empty_slice_weight=0.5, mc_samples=10, dice_factor=5, xent_factor=0.01, sample_dice_coeff=0.05):
         super().__init__()
         
-        dice_loss = DiceLossWithWeightedEmptySlices(r=0.5)
+        dice_loss = SoftDiceV2() # DiceLossWithWeightedEmptySlices(r=0.5)
         self.samples_dice_loss = SsnNetworkMuAndSamplesLossWrapper(dice_loss, samples=mc_samples, sample_loss_coeff=sample_dice_coeff)
         self.mc_loss = StochasticSegmentationNetworkLossMCIntegral(num_mc_samples=mc_samples)
         self.dice_factor = dice_factor
@@ -37,12 +37,13 @@ class StochasticSegmentationNetworkLossMCIntegral(nn.Module):
 
         flat_size = self.num_mc_samples * batch_size
         logit_sample = logit_sample.view((flat_size, num_classes, -1))
+        n_voxels = logit_sample.shape[-1]
         target = target.reshape((flat_size, -1))
 
         log_prob = -F.cross_entropy(logit_sample, target, reduction='none').view((self.num_mc_samples, batch_size, -1))
         loglikelihood = torch.mean(torch.logsumexp(torch.sum(log_prob, dim=-1), dim=0) - math.log(self.num_mc_samples))
         loss = -loglikelihood
-        return loss
+        return loss / n_voxels # I added / n_voxels to get the loss on the same scale as cross entropy is for the other methods.
     
     
 def fixed_re_parametrization_trick(dist, num_samples):
