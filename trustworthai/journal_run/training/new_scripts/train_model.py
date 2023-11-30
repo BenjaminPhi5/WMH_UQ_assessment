@@ -69,6 +69,7 @@ def construct_parser():
     # evidential arguments
     parser.add_argument('--kl_factor', default=0.1, type=float)
     parser.add_argument('--kl_anneal_count', default=452*4, type=int)
+    parser.add_argument('--use_mle', default=0, type=int)
     
     # p-unet arguments
     parser.add_argument('--kl_beta', default=10.0, type=float)

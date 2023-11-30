@@ -20,7 +20,7 @@ def load_evidential(args):
     
     model_raw = Deterministic(base_model).cuda()
     
-    loss = combined_evid_loss(args.dice_factor, args.xent_factor, args.kl_factor, anneal=True, anneal_count=args.kl_anneal_count, dice_empty_slice_weight=args.dice_empty_slice_weight)
-    val_loss = combined_evid_loss(args.dice_factor, args.xent_factor, args.kl_factor, anneal=False, dice_empty_slice_weight=args.dice_empty_slice_weight)
+    loss = combined_evid_loss(args.dice_factor, args.xent_factor * args.xent_reweighting, args.kl_factor * args.xent_reweighting, anneal=True, anneal_count=args.kl_anneal_count, use_mle=args.use_mle)
+    val_loss = combined_evid_loss(args.dice_factor, args.xent_factor * args.xent_reweighting, args.kl_factor * args.xent_reweighting, anneal=False, use_mle=args.use_mle)
     
     return model_raw, loss, val_loss

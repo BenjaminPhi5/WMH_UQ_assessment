@@ -45,6 +45,17 @@ def digamma(values):
 def get_alpha_modified(alpha, one_hot_target):
     return one_hot_target + ((1 - one_hot_target) * alpha)
 
+def MLE(alpha, S, one_hot_target):
+    log_S = torch.log(S).expand(alpha.shape)
+    log_alpha = torch.log(alpha)
+    
+    p_ij = one_hot_target * (log_S - log_alpha)
+    per_pixel_loss =  torch.sum(p_ij, dim=1)
+    
+    # return torch.sum(per_pixel_loss, dim=(-2,-1)).mean() # reduction = batch mean
+    return torch.mean(per_pixel_loss)  # reduction = pixel mean
+
+
 def xent_bayes_risk(alpha, S, one_hot_target):
     digamma_S = torch.digamma(S).expand(alpha.shape)
     digamma_alpha = torch.digamma(alpha)
@@ -52,7 +63,8 @@ def xent_bayes_risk(alpha, S, one_hot_target):
     p_ij = one_hot_target * (digamma_S - digamma_alpha)
     per_pixel_loss =  torch.sum(p_ij, dim=1)
     
-    return torch.sum(per_pixel_loss, dim=(-2,-1)).mean() # reduction = mean
+    # return torch.sum(per_pixel_loss, dim=(-2,-1)).mean() # reduction = batch mean
+    return torch.mean(per_pixel_loss)  # reduction = pixel mean
 
 
 def mse_bayes_risk(mean_p_hat, S, one_hot_target):
@@ -96,14 +108,34 @@ class KL_Loss():
 
         # the early stopping checks val loss every three epochs. There are about 150
         # batches per train iteration currently, so 150*4, anneal in 4 epochs.
+        
+        loss = torch.mean(kl)
+        # loss = torch.mean(kl, dim=(-2,-1)).mean()
         if self.anneal:
             # return torch.sum(kl, dim=(-2,-1)).mean() * (min(1, self.counter/(150*4))**2)
-            return torch.mean(kl, dim=(-2,-1)).mean() * (min(1, self.counter/(150*4))**2)
+            anneal_factor = (min(1, self.counter/(150*4))**2)
+            # print(f"kl loss annealed: {loss * anneal_factor:.3f}, factor: {anneal_factor:.3f} orig loss {loss:.3f}")
+            return loss * anneal_factor
         else:
             # return torch.sum(kl, dim=(-2,-1)).mean()
-            return torch.mean(kl, dim=(-2,-1)).mean()
+            # print("kl not annealed")
+            return loss
+        
 
-def dice_bayes_risk(K, alpha, one_hot_target, S, empty_slice_weight):
+def dice_bayes_risk(K, alpha, one_hot_target, S):
+    bs = alpha.shape[0]
+    alpha = alpha.view(bs, K, -1)
+    one_hot_target = one_hot_target.view(bs, K, -1)
+    S = S.view(bs, 1, -1)
+    #print(one_hot_target.shape, alpha.shape, S.shape)
+    numerator = torch.sum(one_hot_target * alpha / S, dim=2)
+    denominator = torch.sum(one_hot_target ** 2 + (alpha/S)**2 + (alpha*(S-alpha)/((S**2)*(S+1))), dim=2)
+    
+    dice = 1 - (2/K) * ((numerator/denominator).sum(dim=1))
+    #print(dice.shape)
+    return dice.mean()
+
+def dice_bayes_risk_with_emtpty_slices(K, alpha, one_hot_target, S, empty_slice_weight):
     bs = alpha.shape[0]
     alpha = alpha.view(bs, K, -1)
     one_hot_target = one_hot_target.view(bs, K, -1)
@@ -134,13 +166,14 @@ def dice_bayes_risk(K, alpha, one_hot_target, S, empty_slice_weight):
 
 #################### final combined loss functions and metrics
 class combined_evid_loss(nn.Module):
-    def __init__(self, dice_factor, xent_factor, kl_factor, anneal=True, anneal_count=452*4, dice_empty_slice_weight=0.5):
+    def __init__(self, dice_factor, xent_factor, kl_factor, anneal=True, anneal_count=452*4, use_mle=0):
         super().__init__()
         self.kl_obj = KL_Loss(anneal, anneal_count)
         self.dice_factor = dice_factor
         self.xent_factor = xent_factor
         self.kl_factor = kl_factor
-        self.dice_empty_slice_weight = dice_empty_slice_weight
+        self.use_mle = use_mle
+        #self.dice_empty_slice_weight = dice_empty_slice_weight
         
     def forward(self, logits, target):
         # get relevent terms required for loss func
@@ -154,11 +187,19 @@ class combined_evid_loss(nn.Module):
 
 
         #mse = mse_bayes_risk(mean_p_hat, S, one_hot)
-        xent = xent_bayes_risk(alpha, S, one_hot)
-        dice = dice_bayes_risk(K, alpha, one_hot, S, self.dice_empty_slice_weight)
+        if self.use_mle == 1:
+            xent = MLE(alpha, S, one_hot)
+        else:
+            xent = xent_bayes_risk(alpha, S, one_hot)
+        # dice = dice_bayes_risk(K, alpha, one_hot, S, self.dice_empty_slice_weight)
+        dice = dice_bayes_risk(K, alpha, one_hot, S)
         kl = self.kl_obj(alpha_modified)
+        
+        # print(f"dice loss {dice:.3f} xent_loss {xent:.3f}")
 
-        return (dice * self.dice_factor) + (self.kl_factor * kl) + (xent * self.xent_factor)
+        total_loss = (dice * self.dice_factor) + (self.kl_factor * kl) + (xent * self.xent_factor)
+        # print(f"dsc, kl, xent, {(dice * self.dice_factor):.3f} + {(self.kl_factor * kl):.3f} + {(xent * self.xent_factor):.3f}")
+        return total_loss
     
 
 # # metric that calcualtes the kl fully annealled, for early stopping
