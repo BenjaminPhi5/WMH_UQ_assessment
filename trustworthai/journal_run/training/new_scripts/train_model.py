@@ -171,6 +171,11 @@ def main(args):
     elif args.scheduler_type == "poly":
         lr_scheduler_constructor = torch.optim.lr_scheduler.PolynomialLR
         lr_scheduler_params = {"power":args.scheduler_power, "total_iters":args.max_epochs}
+    elif args.scheduler_type == "multistep":
+        lr_scheduler_constructor = torch.optim.lr_scheduler.MultiStepLR
+        milestones = [i * args.scheduler_step_size for i in range(1, 5)]
+        print(f"milestones: {milestones}")
+        lr_scheduler_params = {"milestones":milestones, "gamma":args.scheduler_gamma}
     else:
         raise ValueError
 
