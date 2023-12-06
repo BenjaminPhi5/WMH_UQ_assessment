@@ -48,6 +48,9 @@ def construct_parser():
     parser.add_argument('--val_split', default=0.15, type=float)
     parser.add_argument('--empty_slice_retention', default=0.1, type=float)
     
+    # select the model type to train
+    parser.add_argument('--model_type', default="deterministic", type=str)
+    
     # general arguments for the loss function
     parser.add_argument('--loss_name', default='dice+xent', type=str)
     parser.add_argument('--dice_factor', default=1, type=float) # 5
@@ -61,10 +64,12 @@ def construct_parser():
     # evidential arguments
     parser.add_argument('--kl_factor', default=0.1, type=float)
     parser.add_argument('--kl_anneal_count', default=452*4, type=int)
+    parser.add_argument('--use_mle', default=0, type=int)
+    parser.add_argument('--analytic_kl', default=0, type=int)
     
     # p-unet arguments
     parser.add_argument('--kl_beta', default=10.0, type=float)
-    parser.add_argument('--use_prior_for_dice', default=False, type=bool)
+    parser.add_argument('--use_prior_for_dice', default="false", type=str)
     parser.add_argument('--punet_sample_dice_coeff', default=0.05, type=float)
     parser.add_argument('--latent_dim', default=12, type=int)
     
@@ -78,6 +83,10 @@ def construct_parser():
     # training paradigm arguments
     parser.add_argument('--lr', default=2e-4, type=float)
     parser.add_argument('--dropout_p', default=0.0, type=float)
+    parser.add_argument('--encoder_dropout1', default=0, type=int)
+    parser.add_argument('--encoder_dropout2', default=0, type=int)
+    parser.add_argument('--decoder_dropout1', default=0, type=int)
+    parser.add_argument('--decoder_dropout2', default=0, type=int)
     parser.add_argument('--max_epochs', default=100, type=int)
     parser.add_argument('--early_stop_patience', default=15, type=int)
     parser.add_argument('--scheduler_type', default='step', type=str)
@@ -107,6 +116,9 @@ def main(args):
         for f in existing_files:
             if args.model_name + "_" in f:
                 raise ValueError(f"ovewrite = false and model results exist! folder={model_result_folder}, model_name={args.model_name}")
+            else:
+                with open(os.path.join(model_result_folder, f"{args.model_name}_init.txt"), "w") as f:
+                          f.write("generating results\n")
         
     # setup xent reweighting factor
     XENT_VOXEL_RESCALE = VOXELS_TO_WMH_RATIO - (1-args.empty_slice_retention) * (VOXELS_TO_WMH_RATIO - VOXELS_TO_WMH_RATIO_EXCLUDING_EMPTY_SLICES)
@@ -148,7 +160,10 @@ def main(args):
     # load the checkpoint under consideration
     model_dir = os.path.join(args.ckpt_dir, args.model_name) 
     print("model dir: ", model_dir)
-    model = load_best_checkpoint(model_raw, loss, model_dir)
+    try:
+        model = load_best_checkpoint(model_raw, loss, model_dir)
+    except:
+        raise ValueError(f"dir {model_dir} doesn't contain checkpoints")
     
     # get the xs and ys
     xs3d_test = []
