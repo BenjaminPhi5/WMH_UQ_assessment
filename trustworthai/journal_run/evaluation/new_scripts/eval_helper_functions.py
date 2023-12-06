@@ -17,12 +17,14 @@ def load_best_checkpoint(model, loss, model_ckpt_folder, punet=False):
     with open(os.path.join(model_ckpt_folder, "best_ckpt.txt"), "r") as f:
         ckpt_file = os.path.join(model_ckpt_folder, f.readlines()[0][:-1].split("/")[-1])
     
-    if punet:
-        return PUNetLitModelWrapper.load_from_checkpoint(ckpt_file, model=model, loss=loss, 
-                                    logging_metric=lambda : None)
-    return StandardLitModelWrapper.load_from_checkpoint(ckpt_file, model=model, loss=loss, 
-                                    logging_metric=lambda : None)
-
+    try:
+        if punet:
+            return PUNetLitModelWrapper.load_from_checkpoint(ckpt_file, model=model, loss=loss, 
+                                        logging_metric=lambda : None)
+        return StandardLitModelWrapper.load_from_checkpoint(ckpt_file, model=model, loss=loss, 
+                                        logging_metric=lambda : None)
+    except:
+        raise ValueError(f"ckpt {ckpt_file} couldn't be loaded, maybe it doesn't exist?")
 
 
 def per_model_chal_stats(preds3d, ys3d):
@@ -42,8 +44,9 @@ def per_model_chal_stats(preds3d, ys3d):
 
     return data
 
-def write_per_model_channel_stats(preds, ys3d_test, args):
-    chal_results = per_model_chal_stats(preds, ys3d_test)
+def write_per_model_channel_stats(preds, ys3d_test, args, chal_results=None):
+    if chal_results == None:
+        chal_results = per_model_chal_stats(preds, ys3d_test)
     
     model_result_dir = os.path.join(args.repo_dir, args.result_dir, args.model_name)
     
@@ -70,7 +73,77 @@ def write_per_model_channel_stats(preds, ys3d_test, args):
         
     overall_stats = pd.DataFrame(overall_stats)
     
-    
-    
-    
     overall_stats.to_csv(model_result_dir + "_overall_stats.csv")
+    
+    
+def per_sample_metric(samples, ys3d_test, f, do_argmax, do_softmax, minimise):
+    num_samples = len(samples[0])
+    samples_f = []
+    for i in tqdm(range(len(ys3d_test)), position=0, leave=True):
+        scores = []
+        y = ys3d_test[i].cuda()
+        for j in range(num_samples):
+            if do_argmax:
+                s = samples[i][j].cuda().argmax(dim=1)
+            elif do_softmax:
+                s = torch.softmax(samples[i][j].cuda(), dim=1)
+            else:
+                s = samples[i][j].cuda()
+            scores.append(f(s, y))
+        scores = torch.Tensor(scores)
+        samples_f.append(scores)
+
+    samples_f = torch.stack(samples_f)
+
+    if minimise:
+        return samples_f.min(dim=1)[0], samples_f
+    else:
+        return samples_f.max(dim=1)[0], samples_f
+    
+    
+def fast_rmse(pred, y, p=0.1):
+    locs = (pred[:,1] > p)
+    onehot = (y.unsqueeze(dim=1)==y.unique().view(1, -1, 1, 1)).type(torch.float32)
+    
+    pred = pred.moveaxis(1, -1)[locs]
+    onehot = onehot.moveaxis(1, -1)[locs]
+    
+    return (pred - onehot).square().sum(dim=1).mean().sqrt()
+
+
+def fast_dice(pred, target):
+    p1 = (pred == 1)
+    t1 = (target == 1)
+    intersection = (pred == 1) & (target == 1)
+    numerator = 2 * intersection.sum()
+    denominator = p1.sum() + t1.sum()
+    return (numerator/(denominator + 1e-30)).item()
+
+def fast_avd(pred, target):
+    p1 = pred.sum()
+    t1 = target.sum()
+    
+    return (((p1 - t1).abs() / t1) * 100).item()
+
+def fast_vd(pred, target):
+    p1 = pred.sum()
+    t1 = target.sum()
+    
+    return (((p1 - t1) / t1) * 100).item()
+
+
+def get_xs_and_ys(eval_ds):
+    xs3d_test = []
+    ys3d_test = []
+
+    for i, data in enumerate(eval_ds):
+        ys3d_test.append(data[1].squeeze())
+        xs3d_test.append(data[0])
+        
+    return xs3d_test, ys3d_test
+
+def GT_volumes(ys3d):
+    volumes = []
+    for y in ys3d:
+        volumes.append(y.sum())
+    return torch.Tensor(volumes)
