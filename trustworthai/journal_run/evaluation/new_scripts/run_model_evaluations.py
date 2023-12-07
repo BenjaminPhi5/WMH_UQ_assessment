@@ -10,6 +10,7 @@ def construct_parser():
     parser.add_argument('--eval_split', default='val', type=str)
     parser.add_argument('--script_loc', default='trustworthai/journal_run/evaluation/new_scripts/stochastic_model_basic_eval.py', type=str)
     parser.add_argument('--dataset', default="ed", type=str)
+    parser.add_argument('--overwrite', default="false", type=str)
     return parser
 
 def execute_model_evaluation(hyperparameters_file, args):
@@ -28,10 +29,10 @@ def execute_model_evaluation(hyperparameters_file, args):
     # Create command to execute main script
     script = os.path.join(args.repo_dir, args.script_loc)
     print(script)
-    command = ['python', script, f'--repo_dir={args.repo_dir}', f'--result_dir={args.result_dir}', f'--eval_split={args.eval_split}', f'--ckpt_dir={args.ckpt_dir}', f'--dataset={args.dataset}']
+    command = ['python', script, f'--repo_dir={args.repo_dir}', f'--result_dir={args.result_dir}', f'--eval_split={args.eval_split}', f'--ckpt_dir={args.ckpt_dir}', f'--dataset={args.dataset}', f'--overwrite={args.overwrite}']
 
     keys_to_ignore = [
-        'ckpt_dir', 'dataset'
+        'ckpt_dir', 'dataset', 'overwrite'
     ]
 
     for key, value in hyperparameters.items():

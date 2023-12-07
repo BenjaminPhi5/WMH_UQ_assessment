@@ -32,7 +32,7 @@ def evid_mean(inputs):
     S = get_S(alpha)
     K = alpha.shape[1]
     mean_p_hat = get_mean_p_hat(alpha, S)
-    return mean_p_hat, mean_p_hat
+    return mean_p_hat, None
 
 def deterministic_mean(inputs):
     model_raw=inputs['model']
@@ -57,11 +57,11 @@ def mc_drop_mean_and_samples(inputs):
     num_samples = inputs['num_samples']
     x = x.swapaxes(0,1).cuda()
     mean = model_raw(x)
-    model.train()
+    model_raw.train()
     ind_samples = []
     for j in range(num_samples):
         ind_samples.append(model_raw(x))
-    model.eval()
+    model_raw.eval()
     ind_samples = torch.stack(ind_samples, dim=0)
     return mean, ind_samples
 
@@ -91,7 +91,9 @@ def get_means_and_samples(model_raw, eval_ds, num_samples, model_func, extra_kwa
         with torch.no_grad():
             mean, sample = model_func(inputs)
             means.append(mean.cpu())
-            samples.append(sample.cpu())
+            if sample != None:
+                sample = sample.cpu()
+            samples.append(sample)
             
     return means, samples
 

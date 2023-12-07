@@ -165,14 +165,15 @@ def main(args):
     print(f"CHECKPOINT DIR: {args.ckpt_dir}")
     #print(args)
     
+    
+    # check if folder exists
+    model_result_folder = os.path.join(args.repo_dir, args.result_dir)
     if not args.overwrite:
-        model_result_folder = os.path.join(args.repo_dir, args.result_dir)
         existing_files = os.listdir(model_result_folder)
         for f in existing_files:
             if args.model_name + "_" in f:
                 raise ValueError(f"ovewrite = false and model results exist! folder={model_result_folder}, model_name={args.model_name}")
-            else:
-                with open(os.path.join(model_result_folder, f"{args.model_name}_init.txt"), "w") as f:
+    with open(os.path.join(model_result_folder, f"{args.model_name}_init.txt"), "w") as f:
                           f.write("generating results\n")
         
     # setup xent reweighting factor
@@ -227,9 +228,9 @@ def main(args):
         sample_best_avds, sample_avds = per_sample_metric(samples, ys3d_test, f=fast_avd, do_argmax=True, do_softmax=False, minimise=True)
         sample_best_rmses, sample_rmses = per_sample_metric(samples, ys3d_test, f=fast_rmse, do_argmax=False, do_softmax=True, minimise=True)
         
-    chal_results['best_dice'] = sample_top_dices
-    chal_results['best_avd'] = sample_best_avds
-    chal_results['best_rmse'] = sample_best_rmses
+        chal_results['best_dice'] = sample_top_dices
+        chal_results['best_avd'] = sample_best_avds
+        chal_results['best_rmse'] = sample_best_rmses
     
     # save the results
     write_per_model_channel_stats(preds=None, ys3d_test=None, args=args, chal_results=chal_results)

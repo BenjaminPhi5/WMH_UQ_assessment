@@ -12,7 +12,7 @@ def get_trainer(max_epochs, results_dir, early_stop_patience, store_ckpts=True):
     rootdir = os.path.join(scratch_dir(), results_dir)
     
     checkpoint_callback = ModelCheckpoint(results_dir, save_top_k=2, monitor="val_loss")
-    early_stop_callback = EarlyStopping(monitor="val_loss", min_delta=0.01, patience=early_stop_patience, verbose="False", mode="min", check_finite=True)
+    early_stop_callback = EarlyStopping(monitor="val_loss", min_delta=0.0, patience=early_stop_patience, verbose="False", mode="min", check_finite=True)
     callbacks = [early_stop_callback]
     if store_ckpts:
         callbacks.append(checkpoint_callback)

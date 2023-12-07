@@ -99,7 +99,7 @@ def construct_parser():
     parser.add_argument('--scheduler_gamma', default=0.5, type=float)
     parser.add_argument('--scheduler_power', default=0.9, type=float)
     parser.add_argument('--batch_size', default=32, type=int)
-    parser.add_argument('--cross_validate', default=False, type=bool)
+    parser.add_argument('--cross_validate', default="true", type=str)
     parser.add_argument('--cv_split', default=0, type=int)
     parser.add_argument('--cv_test_fold_smooth', default=1, type=int)
     parser.add_argument('--weight_decay', default=0.0001, type=float)
@@ -113,6 +113,7 @@ def main(args):
     
     # sanitise arguments
     args.overwrite = True if args.overwrite.lower() == "true" else False
+    args.cross_validate = True if args.cross_validate.lower() == "true" else False
     args.use_prior_for_dice = True if args.use_prior_for_dice.lower() == "true" else False
     print(args)
     try:
@@ -148,7 +149,7 @@ def main(args):
             os.mkdir(model_dir)
     
     # get the 2d axial slice dataloaders
-    train_dl, val_dl, test_dl =  load_data(
+    train_dl, val_dl, test_dl = load_data(
         dataset=args.dataset, 
         test_proportion=args.test_split, 
         validation_proportion=args.val_split,
