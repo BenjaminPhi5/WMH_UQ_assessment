@@ -76,7 +76,7 @@ def write_per_model_channel_stats(preds, ys3d_test, args, chal_results=None):
     overall_stats.to_csv(model_result_dir + "_overall_stats.csv")
     
     
-def per_sample_metric(samples, ys3d_test, f, do_argmax, do_softmax, minimise):
+def per_sample_metric(samples, ys3d_test, f, do_argmax, do_softmax, minimise, take_abs=False):
     num_samples = len(samples[0])
     samples_f = []
     for i in tqdm(range(len(ys3d_test)), position=0, leave=True):
@@ -95,10 +95,15 @@ def per_sample_metric(samples, ys3d_test, f, do_argmax, do_softmax, minimise):
 
     samples_f = torch.stack(samples_f)
 
-    if minimise:
-        return samples_f.min(dim=1)[0], samples_f
+    if take_abs:
+        samples_optimize = samples_f.abs()
     else:
-        return samples_f.max(dim=1)[0], samples_f
+        samples_optimize = samples_f
+    
+    if minimise:
+        return samples_optimize.min(dim=1)[0], samples_f
+    else:
+        return samples_optimize.max(dim=1)[0], samples_f
     
     
 def fast_rmse(pred, y, p=0.1):

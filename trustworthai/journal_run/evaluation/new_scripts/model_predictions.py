@@ -18,7 +18,7 @@ def punet_mean_and_samples(inputs):
 
     ind_samples = torch.stack(ind_samples, dim=0)
     
-    return mean, ind_samples
+    return mean, ind_samples, None
 
 
 def evid_mean(inputs):
@@ -32,7 +32,7 @@ def evid_mean(inputs):
     S = get_S(alpha)
     K = alpha.shape[1]
     mean_p_hat = get_mean_p_hat(alpha, S)
-    return mean_p_hat, None
+    return mean_p_hat, None, None
 
 def deterministic_mean(inputs):
     model_raw=inputs['model']
@@ -48,7 +48,7 @@ def ssn_mean_and_samples(inputs):
     num_samples = inputs['num_samples']
     mean, sample = model_raw.mean_and_sample(x.swapaxes(0,1).cuda(), num_samples=num_samples, temperature=1)
     
-    return mean, sample
+    return mean, sample, None
 
 def mc_drop_mean_and_samples(inputs):
     model_raw=inputs['model']
@@ -63,7 +63,7 @@ def mc_drop_mean_and_samples(inputs):
         ind_samples.append(model_raw(x))
     model_raw.eval()
     ind_samples = torch.stack(ind_samples, dim=0)
-    return mean, ind_samples
+    return mean, ind_samples, None
 
 def ensemble_mean_and_sample(inputs):
     model_raw=inputs['model']
@@ -82,6 +82,7 @@ def ssn_ensemble_mean_and_sample(inputs):
 def get_means_and_samples(model_raw, eval_ds, num_samples, model_func, extra_kwargs={}):
     means = []
     samples = []
+    miscs = []
 
     model_raw.eval()
     for i, data in enumerate(tqdm(eval_ds, position=0, leave=True)):
@@ -89,13 +90,14 @@ def get_means_and_samples(model_raw, eval_ds, num_samples, model_func, extra_kwa
         y = data[1]
         inputs = {**{"model":model_raw, "x":x, "y":y, "num_samples":num_samples}, **extra_kwargs}
         with torch.no_grad():
-            mean, sample = model_func(inputs)
+            mean, sample, misc = model_func(inputs)
             means.append(mean.cpu())
             if sample != None:
                 sample = sample.cpu()
             samples.append(sample)
+            miscs.append(misc)
             
-    return means, samples
+    return means, samples, miscs
 
 def reorder_samples(sample):
     sample = sample.cuda()

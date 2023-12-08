@@ -149,7 +149,7 @@ def construct_parser():
     parser.add_argument('--scheduler_gamma', default=0.5, type=float)
     parser.add_argument('--scheduler_power', default=0.9, type=float)
     parser.add_argument('--batch_size', default=32, type=int)
-    parser.add_argument('--cross_validate', default=False, type=bool)
+    parser.add_argument('--cross_validate', default="true", type=str)
     parser.add_argument('--cv_split', default=0, type=int)
     parser.add_argument('--cv_test_fold_smooth', default=1, type=int)
     parser.add_argument('--weight_decay', default=0.0001, type=float)
@@ -162,6 +162,8 @@ def construct_parser():
 def main(args):
     # sanitise arguments
     args.overwrite = True if args.overwrite.lower() == "true" else False
+    args.cross_validate = True if args.cross_validate.lower() == "true" else False
+    args.use_prior_for_dice = True if args.use_prior_for_dice.lower() == "true" else False
     print(f"CHECKPOINT DIR: {args.ckpt_dir}")
     #print(args)
     
@@ -210,7 +212,7 @@ def main(args):
     gt_vols = GT_volumes(ys3d_test)
     
     # load the predictions
-    means, samples = get_means_and_samples(model_raw, eval_ds, num_samples=10, model_func=MODEL_OUTPUT_GENERATORS[args.model_type])
+    means, samples, _ = get_means_and_samples(model_raw, eval_ds, num_samples=10, model_func=MODEL_OUTPUT_GENERATORS[args.model_type])
     
     # run the evaluation on the means
     chal_results = per_model_chal_stats(means, ys3d_test)
