@@ -260,8 +260,8 @@ def get_sUEOs(means, ys3d_test, ent_maps):
         target = ys3d_test[i].cuda()
         ent = ent_maps[i].cuda()
 
-        if pred.sum() == 0:
-            continue
+        # if pred.sum() == 0:
+        #     continue
 
         sUEOs.append(sUEO(pred, ent, target))
 
