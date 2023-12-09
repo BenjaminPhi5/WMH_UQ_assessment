@@ -5,6 +5,8 @@ from trustworthai.journal_run.model_load.load_ssn import load_ssn
 from trustworthai.journal_run.model_load.load_punet import load_p_unet
 from trustworthai.journal_run.model_load.load_deterministic import load_deterministic
 from trustworthai.journal_run.model_load.load_evidential import load_evidential
+import os
+from trustworthai.journal_run.evaluation.new_scripts.eval_helper_functions import load_best_checkpoint
 
 MODEL_LOADERS = {
     "deterministic":load_deterministic,

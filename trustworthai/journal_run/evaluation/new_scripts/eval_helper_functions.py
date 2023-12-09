@@ -49,7 +49,7 @@ def write_per_model_channel_stats(preds, ys3d_test, args, chal_results=None):
     if chal_results == None:
         chal_results = per_model_chal_stats(preds, ys3d_test)
     
-    model_result_dir = os.path.join(args.repo_dir, args.result_dir, args.model_name)
+    model_result_dir = os.path.join(args.repo_dir, args.result_dir, f"{args.uncertainty_type}_{args.model_name}")
     
     # save the results to pandas dataframes
     df = pd.DataFrame(chal_results)
