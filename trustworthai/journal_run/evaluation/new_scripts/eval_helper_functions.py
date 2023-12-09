@@ -52,6 +52,8 @@ def write_per_model_channel_stats(preds, ys3d_test, args, chal_results=None):
     model_result_dir = os.path.join(args.repo_dir, args.result_dir, f"UNCERT_TYPE_{args.uncertainty_type}_base_model_type_{args.model_name}")
     
     # save the results to pandas dataframes
+    for key, value in chal_results:
+        print(key, ": ", len(value))
     df = pd.DataFrame(chal_results)
     df['model_name'] = [args.model_name for _ in range(len(df))]
     
