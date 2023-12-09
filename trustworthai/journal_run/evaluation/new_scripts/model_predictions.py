@@ -130,6 +130,7 @@ def ssn_ensemble_mean_and_samples(inputs):
         collected_means = True
         
     samples = torch.stack(samples)
+    print("total samples: ", samples.shape[0])
     mean = torch.stack(means).mean(dim=0)
     
     return mean, samples, None
