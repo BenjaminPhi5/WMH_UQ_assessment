@@ -120,7 +120,7 @@ def ssn_ensemble_mean_and_samples(inputs):
             print("model dir: ", model_dir)
             model_raw, loss, val_loss = MODEL_LOADERS[args.model_type](args)
             model = load_best_checkpoint(model_raw, loss, model_dir, punet=False)
-            mean, sample = model_raw.mean_and_sample(x.swapaxes(0,1).cuda(), num_samples=2, temperature=1)
+            mean, sample = model_raw.mean_and_sample(x, num_samples=2, temperature=1)
             samples.append(sample[0])
             if not collected_means:
                 means.append(mean)
