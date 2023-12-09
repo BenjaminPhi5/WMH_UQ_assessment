@@ -107,6 +107,7 @@ def ssn_ensemble_mean_and_samples(inputs):
     x=inputs['x']
     y=inputs['y']
     num_samples = inputs['num_samples']
+    args = inputs['args']
     x = x.swapaxes(0,1).cuda()
     collected_samples = 0
     samples = []
