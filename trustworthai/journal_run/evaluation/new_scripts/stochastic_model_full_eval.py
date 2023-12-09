@@ -222,6 +222,7 @@ def main(args):
     
     # get data as lists
     xs3d_test, ys3d_test = get_xs_and_ys(eval_ds)
+    ys3d_test = [y * (y==1).type(y.dtype) for y in ys3d_test] # fix bug with challenge data having 3 classes on cluster only?
     gt_vols = GT_volumes(ys3d_test)
     
     # load the predictions
