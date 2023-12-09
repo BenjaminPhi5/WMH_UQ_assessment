@@ -105,6 +105,8 @@ def construct_parser():
     
     # select the model type to train
     parser.add_argument('--model_type', default="deterministic", type=str)
+    parser.add_argument('--uncertainty_type', default="deterministic", type=str)
+    parser.add_argument('--eval_sample_num', default=10, type=int)
     
     # general arguments for the loss function
     parser.add_argument('--loss_name', default='dice+xent', type=str)
