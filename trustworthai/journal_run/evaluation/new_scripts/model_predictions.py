@@ -218,7 +218,7 @@ def entropy_map_from_mean(mean, do_normalize=True, **kwargs):
 UNCERTAINTY_MAP_GENERATORS = {
     "deterministic":entropy_map_from_mean,
     "mc_drop":entropy_map_from_samples,
-    "evidential_mean":entropy_map_from_mean,
+    "evidential":entropy_map_from_mean,
     "evidential_aleatoric":None,
     "ssn":entropy_map_from_samples,
     "punet":entropy_map_from_samples,
