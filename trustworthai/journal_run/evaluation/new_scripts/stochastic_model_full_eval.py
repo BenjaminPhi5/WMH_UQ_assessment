@@ -81,7 +81,7 @@ MODEL_LOADERS = {
 }
 
 MODEL_OUTPUT_GENERATORS = {
-    "deterministic":mc_drop_mean_and_samples,
+    "deterministic":deterministic_mean,
     "mc_drop":mc_drop_mean_and_samples,
     "evidential":evid_mean,
     "ssn":ssn_mean_and_samples,

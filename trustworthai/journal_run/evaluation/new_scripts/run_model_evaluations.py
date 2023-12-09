@@ -13,6 +13,7 @@ def construct_parser():
     parser.add_argument('--overwrite', default="false", type=str)
     parser.add_argument('--uncertainty_type', default='deterministic', type=str)
     parser.add_argument('--eval_sample_num', default=10, type=int)
+    parser.add_argument('--model_name', default="", type=str)
     return parser
 
 def execute_model_evaluation(hyperparameters_file, args):
@@ -46,9 +47,13 @@ def execute_model_evaluation(hyperparameters_file, args):
     subprocess.call(command)
 
 def main(args):
-    models = os.listdir(args.ckpt_dir)
-    for m in models:
-        file = os.path.join(os.path.join(args.ckpt_dir, m), "best_ckpt.txt")
+    if args.model_name == "": # execute for all models in the folder...
+        models = os.listdir(args.ckpt_dir)
+        for m in models:
+            file = os.path.join(os.path.join(args.ckpt_dir, m), "best_ckpt.txt")
+            execute_model_evaluation(file, args)
+    else: # execute for a specific model...
+        file = os.path.join(os.path.join(args.ckpt_dir, args.model_name), "best_ckpt.txt")
         execute_model_evaluation(file, args)
         
 
