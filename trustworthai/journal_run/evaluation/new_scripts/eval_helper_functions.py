@@ -18,14 +18,14 @@ def load_best_checkpoint(model, loss, model_ckpt_folder, punet=False):
     with open(os.path.join(model_ckpt_folder, "best_ckpt.txt"), "r") as f:
         ckpt_file = os.path.join(model_ckpt_folder, f.readlines()[0][:-1].split("/")[-1])
     
-    try:
-        if punet:
-            return PUNetLitModelWrapper.load_from_checkpoint(ckpt_file, model=model, loss=loss, 
-                                        logging_metric=lambda : None)
-        return StandardLitModelWrapper.load_from_checkpoint(ckpt_file, model=model, loss=loss, 
-                                        logging_metric=lambda : None)
-    except:
-        raise ValueError(f"ckpt {ckpt_file} couldn't be loaded, maybe it doesn't exist?")
+    # try:
+    if punet:
+        return PUNetLitModelWrapper.load_from_checkpoint(ckpt_file, model=model, loss=loss, 
+                                    logging_metric=lambda : None)
+    return StandardLitModelWrapper.load_from_checkpoint(ckpt_file, model=model, loss=loss, 
+                                    logging_metric=lambda : None)
+    # except:
+    #     raise ValueError(f"ckpt {ckpt_file} couldn't be loaded, maybe it doesn't exist?")
 
 
 def per_model_chal_stats(preds3d, ys3d):
