@@ -174,6 +174,9 @@ def main(args):
     args.cross_validate = True if args.cross_validate.lower() == "true" else False
     args.use_prior_for_dice = True if args.use_prior_for_dice.lower() == "true" else False
     print(f"CHECKPOINT DIR: {args.ckpt_dir}")
+    
+    if args.dataset == "chal" and args.eval_split == "all":
+        args.cv_split = 0 #  we are evaluating on the whole dataset anyway and the dataset doesn't divide into more than 5 folds with the parameters used on the ed dataset.
     #print(args)
     
     
@@ -236,7 +239,10 @@ def main(args):
 
     rmses = []
     for m, y in zip(means, ys3d_test):
-        rmses.append(fast_rmse(m.cuda().softmax(dim=1), y.cuda()).cpu())
+        m = m.cuda()
+        if "evid" not in args.uncertainty_type:
+            m = m.softmax(dim=1)
+        rmses.append(fast_rmse(m, y.cuda()).cpu())
     rmses = torch.Tensor(rmses)
     chal_results['rmse'] = rmses
 

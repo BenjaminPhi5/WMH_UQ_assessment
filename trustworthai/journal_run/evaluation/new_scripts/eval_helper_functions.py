@@ -363,3 +363,33 @@ def do_3d_cc_analysis_per_individual(means, ys3d_test, ent_maps, uncertainty_thr
         prop_lesions_missed3d_all.append(prop_lesions_missed3d)
         
     return num_lesions_all, sizes_all, mean_missed_area3d_all, mean_size_missed_lesions3d_all, mean_cov_mean_missed_lesions3d_all, prop_lesions_missed3d_all
+
+def fast_slice_dice(pred, target):
+    bs = pred.shape[0]
+    pred = pred.view(bs, -1)
+    target = target.view(bs, -1)
+    p1 = (pred == 1)
+    t1 = (target == 1)
+    intersection = (pred == 1) & (target == 1)
+    numerator = 2 * intersection.sum(dim=1) + 1e-30
+    denominator = p1.sum(dim=1) + t1.sum(dim=1)
+    return (numerator/(denominator + 1e-30))
+
+def reorder_samples_by_dice(sample, ys):
+    sample = sample.cuda()
+    ys = ys.cuda()
+    preds = sample.argmax(dim=2)
+
+    sample_dice = torch.stack([fast_slice_dice(s, ys) for s in preds])
+
+    slice_dice_orders = torch.sort(sample_dice.T, dim=1)[1]
+
+    # rearrange the samples into one...
+    new_sample = torch.zeros(sample.shape).to(sample.device)
+    for i, slice_dice_orders in enumerate(slice_dice_orders):
+        for j, sample_index in enumerate(slice_dice_orders):
+            new_sample[j][i] = sample[sample_index][i]
+
+    new_sample = new_sample.cpu()
+    
+    return new_sample

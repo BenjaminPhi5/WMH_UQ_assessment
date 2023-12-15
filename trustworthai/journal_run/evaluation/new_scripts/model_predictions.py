@@ -45,6 +45,7 @@ def evid_mean(inputs):
     S = get_S(alpha)
     K = alpha.shape[1]
     mean_p_hat = get_mean_p_hat(alpha, S)
+    
     return mean_p_hat, None, None
 
 def deterministic_mean(inputs):
@@ -61,7 +62,14 @@ def ssn_mean_and_samples(inputs):
     x=inputs['x']
     y=inputs['y']
     num_samples = inputs['num_samples']
+    remove_last=False
+    if num_samples %2 != 0:
+        num_samples +=1
+        remove_last=True
     mean, sample = model_raw.mean_and_sample(x.swapaxes(0,1).cuda(), num_samples=num_samples, temperature=1)
+    
+    if remove_last:
+        sample = sample[:-1]
     
     return mean, sample, None
 
@@ -90,7 +98,7 @@ def ensemble_mean_and_samples(inputs):
     samples = []
     x = x.swapaxes(0,1).cuda()
     
-    for i in range(10):
+    for i in range(min(num_samples, 10)):
         model_dir = os.path.join(args.ckpt_dir, f"ens{i}_cv{args.cv_split}")  
         print("model dir: ", model_dir)
         model_raw, loss, val_loss = MODEL_LOADERS[args.model_type](args)
@@ -99,6 +107,9 @@ def ensemble_mean_and_samples(inputs):
     
     samples = torch.stack(samples)
     mean = samples.mean(dim=0)
+    
+    if num_samples > 10:
+        samples = [None for _ in range(len(samples))]
     
     return mean, samples, None
 
@@ -234,6 +245,6 @@ def get_uncertainty_maps(means, samples, misc, args):
     umap_func = UNCERTAINTY_MAP_GENERATORS[args.uncertainty_type]
     print("generating uncertainty maps")
     for idx in tqdm(range(len(means)), position=0, leave=True):
-        umap_params = {"mean":means[idx], "samples":samples[idx], "misc":misc[idx], "do_normalize":True}
+        umap_params = {"mean":means[idx], "samples":samples[idx], "misc":misc[idx], "do_normalize":args.uncertainty_type != "evidential"}
         ent_maps.append(umap_func(**umap_params))
     return ent_maps
