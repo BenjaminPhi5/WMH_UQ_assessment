@@ -1,0 +1,2 @@
+## ens
+python /home/s2208943/ipdis/WMH_UQ_assessment/trustworthai/journal_run/evaluation/new_scripts/run_model_evaluations.py --repo_dir=/home/s2208943/ipdis/WMH_UQ_assessment --ckpt_dir=/home/s2208943/ipdis/results/journal_models/cross_validated_models --eval_split=all --script_loc=trustworthai/journal_run/evaluation/new_scripts/stochastic_model_full_eval.py --dataset=chal --overwrite=true --uncertainty_type=ens --result_dir=trustworthai/journal_run/evaluation/results/cross_validated_results/out_domain_results --model_name=ens0_cv5

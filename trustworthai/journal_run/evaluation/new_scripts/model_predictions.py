@@ -22,7 +22,10 @@ def punet_mean_and_samples(inputs):
     y=inputs['y']
     num_samples = inputs['num_samples']
     
-    model_raw(x.swapaxes(0,1).cuda(), y.cuda(), training=False)
+    if y != None:
+        y = y.cuda()
+    
+    model_raw(x.swapaxes(0,1).cuda(), y, training=False)
     mean = model_raw.sample(use_prior_mean=True).cpu()
     
     ind_samples = []
