@@ -26,14 +26,59 @@ class MSS3MultiRaterDataParser(DirectoryParser):
     ...
     MSS3_ED_079/
         ...
-    """
-    
-    def __init__(self, dataset_root_in, *args, **kwargs):
-        super().__init__(dataset_root_in, *args, **kwargs)
-        
-    
+    """ 
     def _build_dataset_table(self):
+        folders = os.listdir(self.root_in)
         
+        for ind in folders:
+            if "MSS3" not in ind:
+                continue
+            
+            subfolders = os.listdir(os.path.join(self.root_in, ind))
+            for vf in subfolders:
+                if "V" not in vf:
+                    continue
+                
+                files = os.listdir(os.path.join(self.root_in, ind, vf))
+                ind_files_map = {}
+                for f in files:
+                    if "T1Wbrain" in f:
+                        ind_files_map["T1"] = {
+                            "infile":f,
+                            "outpath":os.path.join(self.root_out, "imgs"), 
+                            "outfilename":f"{ind}_T1",
+                            "islabel":False
+                        }
+                    elif "FLAIRbrain" in f:
+                        ind_files_map["FLAIR"] = {
+                            "infile":f,
+                            "outpath":os.path.join(self.root_out, "imgs"), 
+                            "outfilename":f"{ind}_FLAIR",
+                            "islabel":False
+                        }
+                    elif "WMH_mask_ES" in f:
+                        ind_files_map["wmhes"] = {
+                            "infile":f,
+                            "outpath":os.path.join(self.root_out, "labels"), 
+                            "outfilename":f"{ind}_wmhes",
+                            "islabel":True
+                        }
+                    elif "WMH_mask_MVH" in f:
+                        ind_files_map["wmhmvh"] = {
+                            "infile":f,
+                            "outpath":os.path.join(self.root_out, "labels"), 
+                            "outfilename":f"{ind}_wmhmvh",
+                            "islabel":True
+                        }
+                    elif "lacune" in f:
+                        ind_files_map["lacune"] = {
+                            "infile":f,
+                            "outpath":os.path.join(self.root_out, "labels"), 
+                            "outfilename":f"{ind}_lacune",
+                            "islabel":True
+                        }
+                        
+                    self.files_map[ind] = ind_files_map
     
     
 if __name__ == "__main__":
