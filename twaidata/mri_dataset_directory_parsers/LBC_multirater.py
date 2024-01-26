@@ -59,6 +59,8 @@ class LBCMultiRaterDataParser(DirectoryParser):
             for f in files:
                 if has_v4 and "_4_" not in f:
                     continue
+                if ".nii.gz" not in f:
+                    continue
                 
                 if "t1" in f.lower() and "brain" in f.lower():
                     ind_files_map["T1"] = {
@@ -76,10 +78,10 @@ class LBCMultiRaterDataParser(DirectoryParser):
                     }
                 elif "wmh" in f.lower() and "thresholding" not in f.lower():
                     wmh_id = f.lower().split("wmh")[1].split(".")[0]
-                    ind_files_map[f"wmh{id}"] = {
+                    ind_files_map[f"wmh{wmh_id}"] = {
                         "infile":f,
                         "outpath":os.path.join(self.root_out, "labels"), 
-                        "outfilename":f"{ind}_wmhes",
+                        "outfilename":f"{ind}_wmh{wmh_id}",
                         "islabel":True
                     }
                 elif "icv" in f.lower():
