@@ -6,7 +6,6 @@ from twaidata.mri_dataset_directory_parsers.generic import DirectoryParser
 from twaidata.MRI_preprep.io import FORMAT
 import os
 import importlib.resources as pkg_resources
-import twaidata.mri_dataset_directory_parsers.ed_domains_map as edm
 
 
 class MSS3MultiRaterDataParser(DirectoryParser):
