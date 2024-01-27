@@ -25,6 +25,7 @@ def construct_parser():
     parser.add_argument('--out_spacing', default="1.,1.,3.", type=str, help="output spacing used in the resampling process. Provide as a string of comma separated floats, no spaces, i.e '1.,1.,3.")
     parser.add_argument('-f', '--force_replace', default="False", type=str, help="if true, files that already exist in their target preproessed form will be overwritten (set to true if a new preprocessing protocol is devised, otherwise leave false for efficiency)")
     parser.add_argument('-z', '--skip_if_any', default="False", type=str, help="if true, skips an individual if a single post processed file for that individual is found (useful when running across multiple machines to same output folder")
+    parser.add_argument('-a', '--add_dsname_to_folder_name', default="True", type=str)
 
     return parser
 
@@ -37,7 +38,7 @@ def main(args):
     
     # get the parser that maps inputs to outputs
     # csv file used for custom datasets
-    parser = select_parser(args.name, args.in_dir, args.out_dir, args.csv_file)
+    parser = select_parser(args.name, args.in_dir, args.out_dir, args.csv_file, args.add_dsname_to_folder_name.lower() == "true")
     
     # get the files to be processed
     files_map = parser.get_dataset_inout_map()
@@ -98,6 +99,10 @@ def main(args):
             print(f"skipping, because preprocessed individual {ind} file exists and force_replace set to false")
             continue
         
+        # create the output directory if it does not exist
+        if not os.path.exists(output_dir):
+                os.makedirs(output_dir, exist_ok=True)
+                
         # setting the temp file
         with open(tmp_file, "w") as f:
             f.write(f"processing {ind}")
@@ -117,10 +122,7 @@ def main(args):
         
             # check that the file exists
             if not os.path.exists(infile):
-                raise ValueError(f"target file doesn't exist: {key}")
-            # create the output directory if it does not exist
-            if not os.path.exists(output_dir):
-                os.makedirs(output_dir, exist_ok=True)
+                raise ValueError(f"target file doesn't exist: {infile}")
             
             next_file = infile.split(FORMAT)[0]
             # ======================================================================================
@@ -197,6 +199,7 @@ def main(args):
                     
                     # UPDATE: I have just switched to using the more robust bet2 with -S option at all times for the ADNI data.
                     # (bet is bet2 + options..wierd...)
+                    # print(FSLDIR, next_file, FORMAT, out_file)
                     bet_command = [os.path.join(*[FSLDIR,'bin', 'bet']), next_file + FORMAT, out_file, "-m", "-S"]
                     
                     _ = subprocess.call(bet_command)
