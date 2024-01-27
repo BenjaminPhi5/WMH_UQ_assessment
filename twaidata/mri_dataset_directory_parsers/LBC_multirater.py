@@ -62,16 +62,17 @@ class LBCMultiRaterDataParser(DirectoryParser):
                 if ".nii.gz" not in f:
                     continue
                 
+                fpath = os.path.join(self.root_in, ind, f)
                 if "t1" in f.lower() and "brain" in f.lower():
                     ind_files_map["T1"] = {
-                        "infile":f,
+                        "infile":fpath,
                         "outpath":os.path.join(self.root_out, "imgs"), 
                         "outfilename":f"{ind}_T1",
                         "islabel":False
                     }
                 elif "flair" in f.lower() and "brain" in f.lower():
                     ind_files_map["FLAIR"] = {
-                        "infile":f,
+                        "infile":fpath,
                         "outpath":os.path.join(self.root_out, "imgs"), 
                         "outfilename":f"{ind}_FLAIR",
                         "islabel":False
@@ -79,14 +80,14 @@ class LBCMultiRaterDataParser(DirectoryParser):
                 elif "wmh" in f.lower() and "thresholding" not in f.lower():
                     wmh_id = f.lower().split("wmh")[1].split(".")[0]
                     ind_files_map[f"wmh{wmh_id}"] = {
-                        "infile":f,
+                        "infile":fpath,
                         "outpath":os.path.join(self.root_out, "labels"), 
                         "outfilename":f"{ind}_wmh{wmh_id}",
                         "islabel":True
                     }
                 elif "icv" in f.lower():
                     ind_files_map["ICV"] = {
-                        "infile":f,
+                        "infile":fpath,
                         "outpath":None, 
                         "outfilename":None,
                         "islabel":False

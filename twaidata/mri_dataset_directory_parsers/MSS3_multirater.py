@@ -41,37 +41,38 @@ class MSS3MultiRaterDataParser(DirectoryParser):
                 files = os.listdir(os.path.join(self.root_in, ind, vf))
                 ind_files_map = {}
                 for f in files:
+                    fpath = os.path.join(self.root_in, ind, vf, f)
                     if "T1Wbrain" in f:
                         ind_files_map["T1"] = {
-                            "infile":f,
+                            "infile":fpath,
                             "outpath":os.path.join(self.root_out, "imgs"), 
                             "outfilename":f"{ind}_T1",
                             "islabel":False
                         }
                     elif "FLAIRbrain" in f:
                         ind_files_map["FLAIR"] = {
-                            "infile":f,
+                            "infile":fpath,
                             "outpath":os.path.join(self.root_out, "imgs"), 
                             "outfilename":f"{ind}_FLAIR",
                             "islabel":False
                         }
                     elif "WMH_mask_ES" in f:
                         ind_files_map["wmhes"] = {
-                            "infile":f,
+                            "infile":fpath,
                             "outpath":os.path.join(self.root_out, "labels"), 
                             "outfilename":f"{ind}_wmhes",
                             "islabel":True
                         }
                     elif "WMH_mask_MVH" in f:
                         ind_files_map["wmhmvh"] = {
-                            "infile":f,
+                            "infile":fpath,
                             "outpath":os.path.join(self.root_out, "labels"), 
                             "outfilename":f"{ind}_wmhmvh",
                             "islabel":True
                         }
                     elif "lacune" in f:
                         ind_files_map["lacune"] = {
-                            "infile":f,
+                            "infile":fpath,
                             "outpath":os.path.join(self.root_out, "labels"), 
                             "outfilename":f"{ind}_lacune",
                             "islabel":True
