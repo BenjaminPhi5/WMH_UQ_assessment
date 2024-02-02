@@ -42,7 +42,7 @@ class MSS3MultiRaterDataParser(DirectoryParser):
                 ind_files_map = {}
                 for f in files:
                     fpath = os.path.join(self.root_in, ind, vf, f)
-                    if "T1Wbrain" in f:
+                    if "T1Wbrain" in f and "seg" not in f:
                         ind_files_map["T1"] = {
                             "infile":fpath,
                             "outpath":os.path.join(self.root_out, "imgs"), 
