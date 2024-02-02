@@ -133,7 +133,17 @@ def main(args):
             return infile, output_dir, output_filename, islabel
             
         
-        ### process the t1: copy, resample, bias correct, skull extract, normalize
+        ### process the t1: copy, bias correct, resample, skull extract, normalize
+        # bias correct must be done before resample
+        # comment from someone on a forum:
+        """>We always recommend doing segmentation in the native image
+        >space, as transforming to another space involves interpolation
+        >which blurs the intensities, making the distinctions between
+        >tissues less clear and the histogram less well defined.
+        >So just avoid the resampling, do your segmentation in the
+        >native space and resample your resulting segmented images
+        >if you want them in a different space.
+        """
         # load info
         print("\n --- processing T1 --- \n")
         infile, output_dir, output_filename, islabel = get_filetype_data(ind_filemap["T1"])
@@ -143,13 +153,13 @@ def main(args):
         # copy
         print("\n copy \n")
         _ = subprocess.call(["cp", infile, outfile])
-        # resample
-        print("\n resample \n")
-        resample_and_save(outfile, outfile, is_label=islabel, out_spacing=outspacing, overwrite=True)
         # bias correct
         print("\n bias correct \n")
         bias_field_corr_command = [os.path.join(*[FSLDIR,'bin', 'fast']), '-b', '-B', outfile]
         _ = subprocess.call(bias_field_corr_command)
+        # resample
+        print("\n resample \n")
+        resample_and_save(outfile, outfile, is_label=islabel, out_spacing=outspacing, overwrite=True)
         # skull strip (takes t1 path, out path, mask out path)
         if skull_strip:
             print("\n skull strip \n")
