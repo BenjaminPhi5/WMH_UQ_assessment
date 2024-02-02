@@ -26,7 +26,8 @@ def construct_parser():
     parser.add_argument('-f', '--force_replace', default="False", type=str, help="if true, files that already exist in their target preproessed form will be overwritten (set to true if a new preprocessing protocol is devised, otherwise leave false for efficiency)")
     parser.add_argument('-z', '--skip_if_any', default="False", type=str, help="if true, skips an individual if a single post processed file for that individual is found (useful when running across multiple machines to same output folder")
     parser.add_argument('-a', '--add_dsname_to_folder_name', default="True", type=str)
-
+    parser.add_argument('-k', '--do_skull_strip', default = "True", type=str)
+    
     return parser
 
 
@@ -68,6 +69,9 @@ def main(args):
         raise ValueError(f"malformed outspacing parameter: {args.out_spacing}")
     else:
         print(f"using out_spacing: {outspacing}")
+        
+    # parse the skull_strip argument
+    skull_strip = args.do_skull_strip.lower() == "true"
             
     
     # ======================================================================================
@@ -96,6 +100,8 @@ def main(args):
 
         # a temp file created to tell other threads that this individual is being processed
         # used when the z flag is true.
+        if not os.path.exists(output_dir):
+                os.makedirs(output_dir, exist_ok=True)
         tmp_file = os.path.join(output_dir, f"{ind}_temp.txt")
         if os.path.exists(tmp_file):
             any_found = True
@@ -105,9 +111,6 @@ def main(args):
             print(f"skipping, because preprocessed individual {ind} file exists and force_replace set to false")
             continue
         
-        # create the output directory if it does not exist
-        if not os.path.exists(output_dir):
-                os.makedirs(output_dir, exist_ok=True)
                 
         # setting the temp file
         with open(tmp_file, "w") as f:
@@ -132,38 +135,51 @@ def main(args):
         
         ### process the t1: copy, resample, bias correct, skull extract, normalize
         # load info
+        print("\n --- processing T1 --- \n")
         infile, output_dir, output_filename, islabel = get_filetype_data(ind_filemap["T1"])
-        outfile = os.path.join(output_dir, output_filename)
+        outfile = os.path.join(output_dir, output_filename + FORMAT)
+        if not os.path.exists(output_dir):
+                os.makedirs(output_dir, exist_ok=True)
         # copy
-        new_infile = output_dir + infile.split(os.path.sep)[-1]
-        _ = subprocess.call(["cp", infile, new_infile])
-        infile = new_infile
+        print("\n copy \n")
+        _ = subprocess.call(["cp", infile, outfile])
         # resample
-        resample_and_save(infile, outfile+ "_resamped_"+FORMAT, is_label=islabel, out_spacing=outspacing, overwrite=True)
+        print("\n resample \n")
+        resample_and_save(outfile, outfile, is_label=islabel, out_spacing=outspacing, overwrite=True)
         # bias correct
-        bias_field_corr_command = [os.path.join(*[FSLDIR,'bin', 'fast']), '-b', '-B', outfile+ "_resamped_"+FORMAT]
+        print("\n bias correct \n")
+        bias_field_corr_command = [os.path.join(*[FSLDIR,'bin', 'fast']), '-b', '-B', outfile]
         _ = subprocess.call(bias_field_corr_command)
         # skull strip (takes t1 path, out path, mask out path)
-        mask_outfile = outfile + "BET_mask"+FORMAT
-        skull_strip_and_save(outfile+"_resamped_"+"_restore"+FORMAT, outfile + "_skull_extracted_"+FORMAT, mask_outfile)
+        if skull_strip:
+            print("\n skull strip \n")
+            mask_outfile = outfile.split(FORMAT)[0] + "BET_mask"+FORMAT
+            skull_strip_and_save(outfile, outfile, mask_outfile)
         # normalize
-        normalize(outfile + "_skull_extracted_"+FORMAT, outfile+FORMAT)
+        print("\n normalize \n")
+        normalize(outfile, outfile)
         print("outfile post normalize: ", outfile)
         
         ### process the flair: copy, resample, skull extract, normalize
         # load info
+        print("\n --- processing FLAIR --- \n")
         infile, output_dir, output_filename, islabel = get_filetype_data(ind_filemap["FLAIR"])
-        outfile = os.path.join(output_dir, output_filename)
+        outfile = os.path.join(output_dir, output_filename + FORMAT)
+        if not os.path.exists(output_dir):
+                os.makedirs(output_dir, exist_ok=True)
         # copy
-        new_infile = output_dir + infile.split(os.path.sep)[-1]
-        _ = subprocess.call(["cp", infile, new_infile])
-        infile = new_infile
+        print("\n copy \n")
+        _ = subprocess.call(["cp", infile, outfile])
         # resample
-        resample_and_save(infile, outfile+ "_resamped_"+FORMAT, is_label=islabel, out_spacing=outspacing, overwrite=True)
-        # skull extract
-        apply_mask_and_save(outfile+ "_resamped_"+FORMAT, mask_outfile, outfile+ "_skull_extracted_"+FORMAT)
+        print("\n resample \n")
+        resample_and_save(outfile, outfile, is_label=islabel, out_spacing=outspacing, overwrite=True)
+        # skull strip
+        if skull_strip:
+            print("\n skull strip \n")
+            apply_mask_and_save(outfile, mask_outfile, outfile)
         # normalize
-        normalize(outfile + "_skull_extracted_"+FORMAT, outfile+FORMAT)
+        print("\n normalize \n")
+        normalize(outfile, outfile)
         print("outfile post normalize: ", outfile)
         
         ### process any labels: resample
@@ -173,14 +189,24 @@ def main(args):
             
             # load info
             infile, output_dir, output_filename, islabel = get_filetype_data(ind_filemap[key])
-            outfile = os.path.join(output_dir, output_filename)
+            outfile = os.path.join(output_dir, output_filename + FORMAT)
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir, exist_ok=True)
             
             if not islabel:
                 print(f"skipping {key} because it is not a label")
                 continue
+                
+            print(f"\n --- processing {key} --- \n")
             
             # resample
-            resample_and_save(infile, outfile+ "_resamped_"+FORMAT, is_label=islabel, out_spacing=outspacing, overwrite=True)
+            print("\n resample \n")
+            resample_and_save(infile, outfile, is_label=islabel, out_spacing=outspacing, overwrite=True)
+            
+            # skull strip
+            if skull_strip:
+                print("\n skull strip \n")
+                apply_mask_and_save(outfile, mask_outfile, outfile)
         
 if __name__ == '__main__':
     parser = construct_parser()

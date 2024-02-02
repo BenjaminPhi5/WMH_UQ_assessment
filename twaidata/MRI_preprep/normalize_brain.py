@@ -1,4 +1,5 @@
 import numpy as np
+from twaidata.MRI_preprep.io import load_nii_img, save_nii_img
 
 def get_brain_mean_std(whole_img3D, cutoff=0.01):
     """
@@ -27,7 +28,7 @@ def normalize_brain(whole_img3D, cutoff=0.01):
     
     
 def normalize(img_file, out_file):
-    img, header = load_nii_img(next_file)
+    img, header = load_nii_img(img_file)
     img = img.squeeze()
     normalize_brain(img) # in place operation
 
