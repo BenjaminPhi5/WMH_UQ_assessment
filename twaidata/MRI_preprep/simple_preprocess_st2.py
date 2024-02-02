@@ -130,33 +130,41 @@ def main(args):
             return infile, output_dir, output_filename, islabel
             
         
-        ### process the t1: resample, bias correct, skull extract, normalize
+        ### process the t1: copy, resample, bias correct, skull extract, normalize
         # load info
         infile, output_dir, output_filename, islabel = get_filetype_data(ind_filemap["T1"])
         outfile = os.path.join(output_dir, output_filename)
+        # copy
+        new_infile = output_dir + infile.split(os.path.sep)[-1]
+        _ = subprocess.call(["cp", infile, new_infile])
+        infile = new_infile
         # resample
-        resample_and_save(infile, out_file+ "_resamped_"+FORMAT, is_label=islabel, out_spacing=outspacing, overwrite=True)
+        resample_and_save(infile, outfile+ "_resamped_"+FORMAT, is_label=islabel, out_spacing=outspacing, overwrite=True)
         # bias correct
-        bias_field_corr_command = [os.path.join(*[FSLDIR,'bin', 'fast']), '-b', '-B', out_file+ "_resamped_"+FORMAT]
+        bias_field_corr_command = [os.path.join(*[FSLDIR,'bin', 'fast']), '-b', '-B', outfile+ "_resamped_"+FORMAT]
         _ = subprocess.call(bias_field_corr_command)
         # skull strip (takes t1 path, out path, mask out path)
-        mask_outfile = out_file + "BET_mask"+FORMAT
-        skull_strip_and_save(out_file+"_resamped_"+"_restore.nii.gz"+FORMAT, out_file + "_skull_extracted_"+FORMAT, mask_outfile)
+        mask_outfile = outfile + "BET_mask"+FORMAT
+        skull_strip_and_save(outfile+"_resamped_"+"_restore"+FORMAT, outfile + "_skull_extracted_"+FORMAT, mask_outfile)
         # normalize
-        normalize(out_file + "_skull_extracted_"+FORMAT, out_file+FORMAT)
-        print("outfile post normalize: ", out_file)
+        normalize(outfile + "_skull_extracted_"+FORMAT, outfile+FORMAT)
+        print("outfile post normalize: ", outfile)
         
-        ### process the flair: resample, skull extract, normalize
+        ### process the flair: copy, resample, skull extract, normalize
         # load info
         infile, output_dir, output_filename, islabel = get_filetype_data(ind_filemap["FLAIR"])
         outfile = os.path.join(output_dir, output_filename)
+        # copy
+        new_infile = output_dir + infile.split(os.path.sep)[-1]
+        _ = subprocess.call(["cp", infile, new_infile])
+        infile = new_infile
         # resample
-        resample_and_save(infile, out_file+ "_resamped_"+FORMAT, is_label=islabel, out_spacing=outspacing, overwrite=True)
+        resample_and_save(infile, outfile+ "_resamped_"+FORMAT, is_label=islabel, out_spacing=outspacing, overwrite=True)
         # skull extract
-        apply_mask_and_save(out_file+ "_resamped_"+FORMAT, mask_outfile, out_file+ "_skull_extracted_"+FORMAT)
+        apply_mask_and_save(outfile+ "_resamped_"+FORMAT, mask_outfile, outfile+ "_skull_extracted_"+FORMAT)
         # normalize
-        normalize(out_file + "_skull_extracted_"+FORMAT, out_file+FORMAT)
-        print("outfile post normalize: ", out_file)
+        normalize(outfile + "_skull_extracted_"+FORMAT, outfile+FORMAT)
+        print("outfile post normalize: ", outfile)
         
         ### process any labels: resample
         for key in ind_filemap.keys():
@@ -172,7 +180,7 @@ def main(args):
                 continue
             
             # resample
-            resample_and_save(infile, out_file+ "_resamped_"+FORMAT, is_label=islabel, out_spacing=outspacing, overwrite=True)
+            resample_and_save(infile, outfile+ "_resamped_"+FORMAT, is_label=islabel, out_spacing=outspacing, overwrite=True)
         
 if __name__ == '__main__':
     parser = construct_parser()
