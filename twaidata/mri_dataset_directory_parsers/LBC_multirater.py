@@ -63,7 +63,7 @@ class LBCMultiRaterDataParser(DirectoryParser):
                     continue
                 
                 fpath = os.path.join(self.root_in, ind, f)
-                if "t1" in f.lower() and "brain" in f.lower():
+                if "t1" in f.lower() and "brain" in f.lower() and "seg" not in f.lower():
                     ind_files_map["T1"] = {
                         "infile":fpath,
                         "outpath":os.path.join(self.root_out, "imgs"), 
