@@ -21,10 +21,17 @@ def skull_strip_and_save(t1_path, out_path, mask_path):
     nib.save(stripped, out_path)
     nib.save(mask, mask_path)
 
-
 def apply_mask(image, mask):
     # assmues image and mask are nibabel images.
     image_data = image.get_fdata()
     mask_data = mask.get_fdata()
     new_image = nib.nifti1.Nifti1Image(image_data * mask_data, affine=image.affine, header=image.header)
     return new_image
+
+def apply_mask_and_save(image_path, mask_path, out_path):
+    image = nib.load(image_path)
+    mask = nib.load(mask_path)
+    
+    masked_image = apply_mask(image, mask)
+    
+    nib.save(masked_image, out_path)
