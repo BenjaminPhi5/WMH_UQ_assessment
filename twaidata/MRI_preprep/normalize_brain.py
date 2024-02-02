@@ -24,3 +24,11 @@ def normalize_brain(whole_img3D, cutoff=0.01):
     """
     mean, std, brain_locs = get_brain_mean_std(whole_img3D, cutoff)
     whole_img3D[brain_locs] = (whole_img3D[brain_locs] - mean) / std
+    
+    
+def normalize(img_file, out_file):
+    img, header = load_nii_img(next_file)
+    img = img.squeeze()
+    normalize_brain(img) # in place operation
+
+    save_nii_img(out_file, img, header)

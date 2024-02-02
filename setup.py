@@ -11,6 +11,7 @@ setup(
         "numpy",
         "nibabel",
         "SimpleITK",
+        "pyrobex",
         "itkwidgets",
         "natsort",
         "seaborn",

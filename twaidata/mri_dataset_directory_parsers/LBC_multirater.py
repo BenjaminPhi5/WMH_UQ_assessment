@@ -86,12 +86,13 @@ class LBCMultiRaterDataParser(DirectoryParser):
                         "islabel":True
                     }
                 elif "icv" in f.lower():
-                    ind_files_map["ICV"] = {
-                        "infile":fpath,
-                        "outpath":None, 
-                        "outfilename":None,
-                        "islabel":False
-                    }
+                    continue # the ICVs are causing problems and need to be ignored.
+                    # ind_files_map["ICV"] = {
+                    #     "infile":fpath,
+                    #     "outpath":None, 
+                    #     "outfilename":None,
+                    #     "islabel":False
+                    # }
 
                 self.files_map[ind] = ind_files_map
     
