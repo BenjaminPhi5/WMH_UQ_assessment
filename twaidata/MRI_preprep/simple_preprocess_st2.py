@@ -132,9 +132,6 @@ def main(args):
                 
             return infile, output_dir, output_filename, islabel
             
-            
-        ### if not skull strip, compute the !=0 mask and resample it so that we can multiply the
-        # final result by this at the end, preventing resampling mistakes.
         
         ### process the t1: copy, bias correct, resample, skull extract, normalize
         """ bias correct must be done before resample
@@ -154,18 +151,24 @@ def main(args):
         # copy
         print("\n copy \n")
         _ = subprocess.call(["cp", infile, outfile])
-        # # bias correct
-        # print("\n bias correct \n")
-        # bias_field_corr_command = [os.path.join(*[FSLDIR,'bin', 'fast']), '-b', '-B', outfile]
-        # _ = subprocess.call(bias_field_corr_command)
+        # bias correct
+        print("\n bias correct \n")
+        bias_field_corr_command = [os.path.join(*[FSLDIR,'bin', 'fast']), '-b', '-B', outfile]
+        _ = subprocess.call(bias_field_corr_command)
         # resample
         print("\n resample \n")
         resample_and_save(outfile, outfile, is_label=islabel, out_spacing=outspacing, overwrite=True)
         # skull strip (takes t1 path, out path, mask out path)
+        mask_outfile = outfile.split(FORMAT)[0] + "_BET_mask"+FORMAT
         if skull_strip:
             print("\n skull strip \n")
-            mask_outfile = outfile.split(FORMAT)[0] + "BET_mask"+FORMAT
             skull_strip_and_save(outfile, outfile, mask_outfile)
+        # if not skull strip, compute the !=0 mask and resample it so that we can multiply the
+        # final result by this at the end, preventing resampling mistakes.
+        if not skull_strip:
+            create_mask_from_background_value(infile, mask_outfile)
+            resample_and_save(mask_outfile, mask_outfile, is_label=True, out_spacing=outspacing, overwrite=True)
+            apply_mask_and_save(outfile, mask_outfile, outfile)
         # normalize
         print("\n normalize \n")
         normalize(outfile, mask_outfile if skull_strip else None, outfile)
@@ -185,9 +188,10 @@ def main(args):
         print("\n resample \n")
         resample_and_save(outfile, outfile, is_label=islabel, out_spacing=outspacing, overwrite=True)
         # skull strip
-        if skull_strip:
-            print("\n skull strip \n")
-            apply_mask_and_save(outfile, mask_outfile, outfile)
+        if not skull_strip:
+            print("using background pixel value to perform skull strip since skull strip is false.")
+        print("\n skull strip \n")
+        apply_mask_and_save(outfile, mask_outfile, outfile)
         # normalize
         print("\n normalize \n")
         normalize(outfile, mask_outfile if skull_strip else None, outfile)

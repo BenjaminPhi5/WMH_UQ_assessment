@@ -26,7 +26,7 @@ def get_resampled_img(itk_image, out_spacing=[2.0, 2.0, 2.0], original_spacing=[
     resample.SetOutputDirection(itk_image.GetDirection())      # sets the output direction cosine matrix...
     resample.SetOutputOrigin(itk_image.GetOrigin())
     resample.SetTransform(sitk.Transform())
-    resample.SetDefaultPixelValue(itk_image.GetPixelIDValue())
+    resample.SetDefaultPixelValue(0)#itk_image.GetPixelIDValue())
     
     if is_label:
         resample.SetInterpolator(sitk.sitkNearestNeighbor)

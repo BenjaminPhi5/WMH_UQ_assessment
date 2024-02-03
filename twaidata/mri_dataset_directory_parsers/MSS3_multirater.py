@@ -78,7 +78,7 @@ class MSS3MultiRaterDataParser(DirectoryParser):
                             "islabel":True
                         }
                         
-                    self.files_map[f"{ind}_{vf}] = ind_files_map
+                    self.files_map[f"{ind}_{vf}"] = ind_files_map
     
     
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 from pyrobex.robex import robex
 import nibabel as nib
+import numpy as np
 
 def skull_strip(t1_image):
     """
@@ -35,3 +36,11 @@ def apply_mask_and_save(image_path, mask_path, out_path):
     masked_image = apply_mask(image, mask)
     
     nib.save(masked_image, out_path)
+
+def create_mask_from_background_value(image_path, mask_save_path, background=0.0):
+    image = nib.load(image_path)
+    image_data = image.get_fdata()
+    mask = image_data != background
+    mask = mask.astype(np.float32)
+    mask_image = nib.nifti1.Nifti1Image(mask, affine=image.affine)
+    nib.save(mask_image, mask_save_path)
