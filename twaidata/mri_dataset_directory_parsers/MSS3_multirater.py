@@ -46,39 +46,39 @@ class MSS3MultiRaterDataParser(DirectoryParser):
                         ind_files_map["T1"] = {
                             "infile":fpath,
                             "outpath":os.path.join(self.root_out, "imgs"), 
-                            "outfilename":f"{ind}_T1",
+                            "outfilename":f"{ind}_{vf}_T1",
                             "islabel":False
                         }
                     elif "FLAIRbrain" in f:
                         ind_files_map["FLAIR"] = {
                             "infile":fpath,
                             "outpath":os.path.join(self.root_out, "imgs"), 
-                            "outfilename":f"{ind}_FLAIR",
+                            "outfilename":f"{ind}_{vf}_FLAIR",
                             "islabel":False
                         }
                     elif "WMH_mask_ES" in f:
                         ind_files_map["wmhes"] = {
                             "infile":fpath,
                             "outpath":os.path.join(self.root_out, "labels"), 
-                            "outfilename":f"{ind}_wmhes",
+                            "outfilename":f"{ind}_{vf}_wmhes",
                             "islabel":True
                         }
                     elif "WMH_mask_MVH" in f:
                         ind_files_map["wmhmvh"] = {
                             "infile":fpath,
                             "outpath":os.path.join(self.root_out, "labels"), 
-                            "outfilename":f"{ind}_wmhmvh",
+                            "outfilename":f"{ind}_{vf}_wmhmvh",
                             "islabel":True
                         }
                     elif "lacune" in f:
                         ind_files_map["lacune"] = {
                             "infile":fpath,
                             "outpath":os.path.join(self.root_out, "labels"), 
-                            "outfilename":f"{ind}_lacune",
+                            "outfilename":f"{ind}_{vf}_lacune",
                             "islabel":True
                         }
                         
-                    self.files_map[ind] = ind_files_map
+                    self.files_map[f"{ind}_{vf}] = ind_files_map
     
     
 if __name__ == "__main__":
