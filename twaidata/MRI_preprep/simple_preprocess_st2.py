@@ -7,7 +7,7 @@ import subprocess
 
 # todo sort out these imports so that they work like a proper module should.
 from twaidata.MRI_preprep.io import load_nii_img, save_nii_img, FORMAT
-from twaidata.MRI_preprep.normalize_brain import normalize
+from twaidata.MRI_preprep.normalize_brain_v2 import normalize
 from twaidata.MRI_preprep.resample import resample_and_return, resample_and_save
 from twaidata.mri_dataset_directory_parsers.parser_selector import select_parser
 from twaidata.MRI_preprep.skull_strip import *
@@ -26,8 +26,7 @@ def construct_parser():
     parser.add_argument('-f', '--force_replace', default="False", type=str, help="if true, files that already exist in their target preproessed form will be overwritten (set to true if a new preprocessing protocol is devised, otherwise leave false for efficiency)")
     parser.add_argument('-z', '--skip_if_any', default="False", type=str, help="if true, skips an individual if a single post processed file for that individual is found (useful when running across multiple machines to same output folder")
     parser.add_argument('-a', '--add_dsname_to_folder_name', default="True", type=str)
-    parser.add_argument('-k', '--do_skull_strip', default = "True", type=str)
-    
+    parser.add_argument('-k', '--do_skull_strip', default="True", type=str)
     return parser
 
 
@@ -72,7 +71,8 @@ def main(args):
         
     # parse the skull_strip argument
     skull_strip = args.do_skull_strip.lower() == "true"
-            
+    if not skull_strip:
+        print("skull stripping will not be applied")
     
     # ======================================================================================
     # RUN
@@ -132,17 +132,18 @@ def main(args):
                 
             return infile, output_dir, output_filename, islabel
             
+            
+        ### if not skull strip, compute the !=0 mask and resample it so that we can multiply the
+        # final result by this at the end, preventing resampling mistakes.
         
         ### process the t1: copy, bias correct, resample, skull extract, normalize
-        # bias correct must be done before resample
-        # comment from someone on a forum:
-        """>We always recommend doing segmentation in the native image
-        >space, as transforming to another space involves interpolation
-        >which blurs the intensities, making the distinctions between
-        >tissues less clear and the histogram less well defined.
-        >So just avoid the resampling, do your segmentation in the
-        >native space and resample your resulting segmented images
-        >if you want them in a different space.
+        """ bias correct must be done before resample
+        
+        resampling to another space via interpolation blurs the intensities, making the distinctions between tissue types ambiguous and the histogram less well defined.
+        
+        in general, segmentation should be in native space...? Therefore sampling to 3 different spaces and native space may not be a bad idea for an ensemble actually.... 
+        
+        Could form part of my model soup idea....
         """
         # load info
         print("\n --- processing T1 --- \n")
@@ -153,10 +154,10 @@ def main(args):
         # copy
         print("\n copy \n")
         _ = subprocess.call(["cp", infile, outfile])
-        # bias correct
-        print("\n bias correct \n")
-        bias_field_corr_command = [os.path.join(*[FSLDIR,'bin', 'fast']), '-b', '-B', outfile]
-        _ = subprocess.call(bias_field_corr_command)
+        # # bias correct
+        # print("\n bias correct \n")
+        # bias_field_corr_command = [os.path.join(*[FSLDIR,'bin', 'fast']), '-b', '-B', outfile]
+        # _ = subprocess.call(bias_field_corr_command)
         # resample
         print("\n resample \n")
         resample_and_save(outfile, outfile, is_label=islabel, out_spacing=outspacing, overwrite=True)
@@ -167,7 +168,7 @@ def main(args):
             skull_strip_and_save(outfile, outfile, mask_outfile)
         # normalize
         print("\n normalize \n")
-        normalize(outfile, outfile)
+        normalize(outfile, mask_outfile if skull_strip else None, outfile)
         print("outfile post normalize: ", outfile)
         
         ### process the flair: copy, resample, skull extract, normalize
@@ -189,7 +190,7 @@ def main(args):
             apply_mask_and_save(outfile, mask_outfile, outfile)
         # normalize
         print("\n normalize \n")
-        normalize(outfile, outfile)
+        normalize(outfile, mask_outfile if skull_strip else None, outfile)
         print("outfile post normalize: ", outfile)
         
         ### process any labels: resample
