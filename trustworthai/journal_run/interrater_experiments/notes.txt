@@ -1,6 +1,20 @@
+list of things that I need to do for the MSS3 dataset:
+
+- Implement those bland altman plots with confidence intervals (look at the work that I have already done on this, I started one)
+- Put in the Dice between raters vs volume plot. Nice.
+- Compute the Dice, best AVD, AVD, best AVD, for each rater.
+- computer the GeD across each rater
+- look at what happens as we increase the number of samples for each method as the original intention of the paper is. I can keep the plot I have that does that information on the training data.
+- Implement the JUEO and UIRO (remember to block out the relevant other part from the uncertainty map okay). I should rewrite the equations in terms of Dice(a, b) and then define a and b carefully for each method
+- look at the connected component analysis Miguel suggested (want to ensure incorrect lesions are filled in, so lesions that are incorrect for both raters!!!)
+- compute the RMBS specifically at the areas where raters disagree.
+
+
+
 GeD score
 sample diversity of each of the methods vs the raters
 best AVD per each rater, so rater 1 and rater 2
 see the paper that jesse sent me and the paper that maria sent me, cite them both and look at what kind of results they have,
 see my notes from the meeting and my notes from the presentation (so split UEO into two components, JUEO and UIRO metrics that I have invented recently. Nice. For each of these I should discount uncertainty in the other region (e.g discout IR from the joint and joint from the IR) nice. I like these metrics and I shall propose them and put in the contributions that I have proposed two new metrics. Nice.
 notes: cite that paper that miguel sent. Nice.
+
