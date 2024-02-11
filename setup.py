@@ -9,6 +9,7 @@ setup(
 
     install_requires = [
         "numpy",
+        "statsmodels",
         "nibabel",
         "SimpleITK",
         "pyrobex",
