@@ -18,3 +18,8 @@ see the paper that jesse sent me and the paper that maria sent me, cite them bot
 see my notes from the meeting and my notes from the presentation (so split UEO into two components, JUEO and UIRO metrics that I have invented recently. Nice. For each of these I should discount uncertainty in the other region (e.g discout IR from the joint and joint from the IR) nice. I like these metrics and I shall propose them and put in the contributions that I have proposed two new metrics. Nice.
 notes: cite that paper that miguel sent. Nice.
 
+
+### note maria's comment
+looking at the UIRO plot for each individual for the SSN model...
+Maria states that the differences between raters are really around whether lesions should exist or not, whether they have been missed by the machine, not whether the boundary is correct. So we expect the UIRO to be low because there is likely a lot of boundary in this case.
+So the question is, is that true, if we block out the boundary then what do we find? That would be an interesting question to ask I think. So we think that the result above is explainable and makes sense :)
