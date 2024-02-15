@@ -50,6 +50,14 @@ class LBCMultiRaterDataParser(DirectoryParser):
                 continue
                 
             files = natsorted(os.listdir(os.path.join(self.root_in, ind)))
+            has_wmh_thresholding_version = False
+            for f in files:
+                if "WMH_FLAIR_thresholding.nii.gz" in f:
+                    has_wmh_thresholding_version = True
+            
+            if not has_wmh_thresholding_version: # these are the only images that seem to have genuine inter-rater variability. However they use a different method for arriving at the inter-rater information.
+                continue
+            
             has_v4 = False
             for f in files:
                 if "_4_" in f:
@@ -77,6 +85,13 @@ class LBCMultiRaterDataParser(DirectoryParser):
                         "outfilename":f"{ind}_FLAIR",
                         "islabel":False
                     }
+                elif "wmh_flair_thresholding" in f.lower():
+                    ind_files_map[f"wmh_flthresh"] = {
+                        "infile":fpath,
+                        "outpath":os.path.join(self.root_out, "labels"), 
+                        "outfilename":f"{ind}_wmh_flthresh",
+                        "islabel":True
+                    }                                  
                 elif "wmh" in f.lower() and "thresholding" not in f.lower():
                     wmh_id = f.lower().split("wmh")[1].split(".")[0]
                     ind_files_map[f"wmh{wmh_id}"] = {
