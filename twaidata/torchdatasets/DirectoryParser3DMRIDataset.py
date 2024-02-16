@@ -6,6 +6,7 @@ import numpy as np
 import torch
 from twaidata.mri_dataset_directory_parsers.MSS3_multirater import MSS3MultiRaterDataParser
 from twaidata.mri_dataset_directory_parsers.LBC_multirater import LBCMultiRaterDataParser
+from twaidata.mri_dataset_directory_parsers.LBC_multirater_kjf import LBCkjfMultiRaterDataParser
 
 
 class DirectoryParser3DMRIDataset(Dataset):
@@ -65,5 +66,15 @@ class LBCInterRaterDataset(DirectoryParser3DMRIDataset):
         # paths on the cluster for the in house data
         "/home/s2208943/ipdis/data/InterRater_data",
         "/home/s2208943/ipdis/data/preprocessed_data/LBC_InterRaterData"
+            )
+        )
+
+class LBCkjfInterRaterDataset(DirectoryParser3DMRIDataset):
+    def __init__(self):
+        super().__init__(
+            LBCkjfMultiRaterDataParser(
+        # paths on the cluster for the in house data
+        "/home/s2208943/ipdis/data/InterRater_data",
+        "/home/s2208943/ipdis/data/preprocessed_data/LBCkjf_InterRaterData"
             )
         )
