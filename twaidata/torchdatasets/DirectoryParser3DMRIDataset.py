@@ -78,3 +78,13 @@ class LBCkjfInterRaterDataset(DirectoryParser3DMRIDataset):
         "/home/s2208943/ipdis/data/preprocessed_data/LBCkjf_InterRaterData"
             )
         )
+        
+class WMHChallengeInterRaterDataset(DirectoryParser3DMRIDataset):
+    def __init__(self):
+        super().__init__(
+            WMHChallengeInterRaterDirParser(
+        # paths on the cluster for the in house data
+        "/home/s2208943/ipdis/data/WMH_Challenge_full_dataset",
+        "/home/s2208943/ipdis/data/preprocessed_data/WMHChallenge_InterRaterData"
+            )
+        )

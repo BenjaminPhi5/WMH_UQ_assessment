@@ -3,6 +3,7 @@ from twaidata.mri_dataset_directory_parsers.EdData import EdDataParser
 from twaidata.mri_dataset_directory_parsers.MSS3_multirater import MSS3MultiRaterDataParser
 from twaidata.mri_dataset_directory_parsers.LBC_multirater import LBCMultiRaterDataParser
 from twaidata.mri_dataset_directory_parsers.LBC_multirater_kjf import LBCkjfMultiRaterDataParser
+from twaidata.mri_dataset_directory_parsers.WMHChallenge_interrater import WMHChallengeInterRaterDirParser
 from twaidata.mri_dataset_directory_parsers.from_text_file import FromFileParser
 import os
 
@@ -23,6 +24,8 @@ def select_parser(dataset_name, dataset_location, preprocessed_location, csv_fil
         return WMHChallengeDirParser(data_in_dir,data_out_dir)
     elif dataset_name == "EdData" or dataset_name == "mixedCVDrelease":
         return EdDataParser(data_in_dir, data_out_dir)
+    elif dataset_name == "WMH_InterRater":
+        return WMHChallengeInterRaterDirParser(data_in_dir, data_out_dir)
     elif dataset_name == "MSS3":
         return MSS3MultiRaterDataParser(data_in_dir, data_out_dir)
     elif dataset_name == "LBC":
