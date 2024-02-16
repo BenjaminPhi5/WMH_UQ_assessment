@@ -1,0 +1,1 @@
+THe WMH challenge dataset cannot be unzipped by unzip by default because there are some folders in the neowly available test data that have a spaces and .'s in the name. So I am going to write some code to do the extraction manually.
