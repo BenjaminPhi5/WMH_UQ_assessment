@@ -307,7 +307,7 @@ def get_3d_cc_analysis(img, mean, ent, uncertainty_thresholds, ss=5, prop_size=0
     proportion_missing_lesion_covered_ent = {ct:[] for ct in c_thresholds}
     num_entirely_missed_lesions = {ct:0 for ct in c_thresholds}
     entirely_missed_lesions_size = {ct:[] for ct in c_thresholds}
-
+d as President Tom K
     for ccid in labels_out.unique():
         if ccid == 0:
             continue
