@@ -109,7 +109,7 @@ def per_sample_metric(samples, ys3d_test, f, do_argmax, do_softmax, minimise, ta
     else:
         return samples_optimize.max(dim=1)[0], samples_f
     
-    
+
 def fast_rmse(pred, y, p=0.1):
     locs = (pred[:,1] > p)
     onehot = (y.unsqueeze(dim=1)==y.unique().view(1, -1, 1, 1)).type(torch.float32)
@@ -117,6 +117,7 @@ def fast_rmse(pred, y, p=0.1):
     pred = pred.moveaxis(1, -1)[locs]
     onehot = onehot.moveaxis(1, -1)[locs]
     
+    # should this not be a sum on dim -1 given the line above!!!!!!
     return (pred - onehot).square().sum(dim=1).mean().sqrt()
 
 
