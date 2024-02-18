@@ -7,6 +7,7 @@ import torch
 from twaidata.mri_dataset_directory_parsers.MSS3_multirater import MSS3MultiRaterDataParser
 from twaidata.mri_dataset_directory_parsers.LBC_multirater import LBCMultiRaterDataParser
 from twaidata.mri_dataset_directory_parsers.LBC_multirater_kjf import LBCkjfMultiRaterDataParser
+from twaidata.mri_dataset_directory_parsers.WMHChallenge_interrater import WMHChallengeInterRaterDirParser
 
 
 class DirectoryParser3DMRIDataset(Dataset):
