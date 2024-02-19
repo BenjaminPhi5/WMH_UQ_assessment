@@ -765,6 +765,8 @@ def main(args):
     all_result_ns = [2, 10, 30]
     
     for num_samples in [2, 3, 5, 7, 10, 15, 20, 25, 30]:
+        overall_results[num_samples][f'rmses'] = rmses
+        overall_results[num_samples][f'IR_rmses'] = IR_rmses
         print("NUM SAMPLES: ", num_samples)
         args.eval_sample_num = num_samples
         try:
