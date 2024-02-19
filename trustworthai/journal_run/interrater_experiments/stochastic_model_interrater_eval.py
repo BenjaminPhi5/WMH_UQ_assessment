@@ -758,7 +758,7 @@ def main(args):
 
     print("loading model predictions")
     ns_init = 10 if args.uncertainty_type == "ens" else 30
-    means, samples_all, misc = get_means_and_samples(model_raw, rater0_ds, num_samples=30, model_func=MODEL_OUTPUT_GENERATORS[args.uncertainty_type], args=args)
+    means, samples_all, misc = get_means_and_samples(model_raw, rater0_ds, num_samples=ns_init, model_func=MODEL_OUTPUT_GENERATORS[args.uncertainty_type], args=args)
 
     rmses, IR_rmses = get_rmse_stats(means, rater0, rater1)
 
