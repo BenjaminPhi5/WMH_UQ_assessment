@@ -810,7 +810,7 @@ def main(args):
                     no_edge_jueo_curves = torch.Tensor(no_edge_jueo_curves)
                     for ti, t in enumerate(uncertainty_thresholds):
                         overall_results[num_samples][f'no_edge_uiro_curves_t{t:.2f}'] = no_edge_uiro_curves[:,ti]
-                        overall_results[num_samples][f'no_edge_jueo_curves{t:.2f}'] = no_edge_jueo_curves[:,ti]
+                        overall_results[num_samples][f'no_edge_jueo_curves_t{t:.2f}'] = no_edge_jueo_curves[:,ti]
 
                     print("soft UEO metrics values")
                     sUIRO, sJUEO, sUEO_r1, sUEO_r2, s_ed_UIRO, s_ed_JUEO = soft_ueo_metrics(means, ent_maps, rater0, rater1, xs3d_test)
