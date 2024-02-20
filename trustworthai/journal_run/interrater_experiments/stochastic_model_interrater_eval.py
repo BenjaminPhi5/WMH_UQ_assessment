@@ -844,6 +844,7 @@ def main(args):
                     pixelwise_results[num_samples]['edJFP'] = edJFP
                     pixelwise_results[num_samples]['edJFN'] = edJFN
                     pixelwise_results[num_samples]['edIR'] = edIR
+                    np.savez("/home/s2208943/ipdis/results/pixel_wise_inter_rater_stats/" + f"voxelwise_IRstats_{args.dataset}_{args.uncertainty_type}_cv{args.cv_split}_ns{num_samples}.npz", pixelwise_results[num_samples], allow_pickle=True)
 
                     print("volume difference distribution information")
                     vds_rater0, vds_rater1, vds_rater_mean, sample_vol_skew = vd_dist_and_skew(samples, rater0, rater1)
@@ -877,9 +878,7 @@ def main(args):
                 for key in overall_results[num_samples].keys():
                     print(key, len(overall_results[num_samples][key]))
                 pd.DataFrame(overall_results[num_samples]).to_csv(path + f"inter_rater_{args.dataset}_{args.uncertainty_type}_cv{args.cv_split}_ns{num_samples}.csv")
-                np.savez("/home/s2208943/ipdis/results/pixel_wise_inter_rater_stats/" + f"voxelwise_IRstats_{args.dataset}_{args.uncertainty_type}_cv{args.cv_split}_ns{num_samples}.npz", pixelwise_results, allow_pickle=True)
-
-                # TODO I SHOULD DO GED BASED ON DICE sorting AND VOLUME sorting
+                
             else:
                 print("samples is None, breaking now")
                 break
