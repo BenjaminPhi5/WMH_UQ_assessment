@@ -872,11 +872,11 @@ def main(args):
                             # ged score by dice
                             overall_results[num_samples]['GED_dice_sorted'].append(individual_multirater_iou_GED(means[i], [r[i] for r in raters], s))
                     
-                overall_results[ns]['mean_gt_vols'] = mean_gt_vols
+                overall_results[num_samples]['mean_gt_vols'] = mean_gt_vols
                 
                 path = "/home/s2208943/ipdis/WMH_UQ_assessment/trustworthai/journal_run/interrater_experiments/results/"
-                for key in overall_results[num_samples].keys():
-                    print(key, len(overall_results[num_samples][key]))
+                # for key in overall_results[num_samples].keys():
+                    # print(key, len(overall_results[num_samples][key]))
                 pd.DataFrame(overall_results[num_samples]).to_csv(path + f"inter_rater_{args.dataset}_{args.uncertainty_type}_cv{args.cv_split}_ns{num_samples}.csv")
                 
             else:
