@@ -877,7 +877,7 @@ def main(args):
                 for key in overall_results[num_samples].keys():
                     print(key, len(overall_results[num_samples][key]))
                 pd.DataFrame(overall_results[num_samples]).to_csv(path + f"inter_rater_{args.dataset}_{args.uncertainty_type}_cv{args.cv_split}_ns{num_samples}.csv")
-                np.savez(path + f"voxelwise_IRstats_{args.dataset}_{args.uncertainty_type}_cv{args.cv_split}_ns{num_samples}.npz", pixelwise_results, allow_pickle=True)
+                np.savez("/home/s2208943/ipdis/results/pixel_wise_inter_rater_stats/" + f"voxelwise_IRstats_{args.dataset}_{args.uncertainty_type}_cv{args.cv_split}_ns{num_samples}.npz", pixelwise_results, allow_pickle=True)
 
                 # TODO I SHOULD DO GED BASED ON DICE sorting AND VOLUME sorting
             else:
