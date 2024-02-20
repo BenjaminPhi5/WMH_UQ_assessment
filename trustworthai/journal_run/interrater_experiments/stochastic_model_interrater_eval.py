@@ -247,7 +247,7 @@ def get_rmse_stats(means, rater0, rater1):
         rmses.append(rmse)
         IR_rmses.append(ir_rmse)
         
-        return rmses, IR_rmses
+    return rmses, IR_rmses
     
 def edge_deducted_UIRO(pred, thresholded_umap, seg1, seg2):
     pred = pred.type(torch.float32).cuda()
@@ -874,7 +874,10 @@ def main(args):
                 overall_results[ns]['mean_gt_vols'] = mean_gt_vols
                 
                 path = "/home/s2208943/ipdis/WMH_UQ_assessment/trustworthai/journal_run/interrater_experiments/results/"
+                for key in overall_results[num_samples].keys():
+                    print(key, len(overall_results[num_samples][key]))
                 pd.DataFrame(overall_results[num_samples]).to_csv(path + f"inter_rater_{args.dataset}_{args.uncertainty_type}_cv{args.cv_split}_ns{num_samples}.csv")
+                np.savez(path + f"voxelwise_IRstats_{args.dataset}_{args.uncertainty_type}_cv{args.cv_split}_ns{num_samples}.npz", pixelwise_results, allow_pickle=True)
 
                 # TODO I SHOULD DO GED BASED ON DICE sorting AND VOLUME sorting
             else:
