@@ -60,7 +60,7 @@ def main(args):
     # get the fsl directory used for brain extraction and bias field correction
     FSLDIR = os.getenv('FSLDIR')
     if 'FSLDIR' == "":
-        raise ValueError("FSL is not installed. Install FSL to complete brain extraction")
+        raise ValueError("FSL is not installed. Install FSL to complete bias correction")
         
     # parse the outspacing argument
     outspacing = [float(x) for x in args.out_spacing.split(",")]
