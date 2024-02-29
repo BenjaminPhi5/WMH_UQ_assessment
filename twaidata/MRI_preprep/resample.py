@@ -88,5 +88,6 @@ def resample_images_to_original_spacing_and_save(orig_image_path, new_image_path
     """
     outspacing = sitk.ReadImage(orig_image_path).GetSpacing()
     for path, is_label in zip(new_image_paths, is_labels):
+        print("ISLABEL STATUS: ", is_label)
         resample_and_save(path, path, is_label=is_label, out_spacing=outspacing, overwrite=True)
     

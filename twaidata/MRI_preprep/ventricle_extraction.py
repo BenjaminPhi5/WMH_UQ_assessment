@@ -8,6 +8,7 @@ from scipy.ndimage import distance_transform_edt
 from twaidata.MRI_preprep.io import save_nii_img, load_nii_img
 from twaidata.MRI_preprep.resample import resample_images_to_original_spacing_and_save
 import argparse
+from natsort import natsorted
 
 SYNTH_SEG_PYTHON_PATH = "/home/s2208943/miniconda3/envs/synthseg_38/bin/python"
 SYNTH_SEG_PREDICT_PATH = "/home/s2208943/SynthSeg/scripts/commands/SynthSeg_predict.py"
@@ -43,17 +44,19 @@ def create_ventricle_distance_map(synthseg_file, out_file):
     save_nii_img(out_file, distance_map, synthseg_header)
     
     
-def set_synth_seg_images_to_correct_shape(orig_image_path, new_image_paths):
+def set_synth_seg_images_to_correct_shape(orig_image_path, new_image_paths, dtypes):
     """
     since the resampling of the synth seg images sometimes adds an extra slice, we just crop the synth seg segmentation to the right size. This is also applied to derived images (e.g the eucidean distance map).
     """
     
     orig_shape = load_nii_img(orig_image_path)[0].shape  
     
-    # load, crop, save
-    for path in new_image_paths:
+    # load, crop, update header, save
+    for path, dtype in zip(new_image_paths, dtypes):
         data, header = load_nii_img(path)
         data = data[0:orig_shape[0], 0:orig_shape[1], 0:orig_shape[2]]
+        data = data.astype(dtype)
+        header.set_data_dtype(dtype)
         save_nii_img(path, data, header)
         
 def run_ventricle_seg_pipeline(in_file, out_folder, force=False):
@@ -65,6 +68,7 @@ def run_ventricle_seg_pipeline(in_file, out_folder, force=False):
     # skip if file exists
     if not force and os.path.exists(ventdistance_file):
         print(f"SKIPPING {in_file} since file exists and force=False")
+        return
     
     print(f"PROCESSING {in_file}")
     
@@ -84,7 +88,7 @@ def run_ventricle_seg_pipeline(in_file, out_folder, force=False):
     # adjust the size of the synthseg and ventricle distance map to
     # be the right shape after resampling
     set_synth_seg_images_to_correct_shape(orig_image_path=in_file,
-        new_image_paths=[synthseg_file, ventdistance_file])
+        new_image_paths=[synthseg_file, ventdistance_file], dtypes=[np.uint8, np.float32])
 
 
 def run_vent_pipline_across_folder(folder, force=False):
@@ -92,6 +96,8 @@ def run_vent_pipline_across_folder(folder, force=False):
     
     # find T1s
     files = [f for f in files if "_T1.nii.gz" in f]
+    
+    files = natsorted(files)
     
     # add folder name
     if folder[-1] == '/':
@@ -107,11 +113,12 @@ def construct_parser():
     # preprocessing settings
     parser = argparse.ArgumentParser(description = "MRI nii.gz simple preprocessing pipeline")
     
-    parser.add_argument('-i', '--in_dir', required=True, help='folder containing T1 images ending _T1.nii.gz to be processed')
+    parser.add_argument('-i', '--in_dir', required=True, help='folder containing T1 images ending _T1.nii.gz to be processed', type=str)
+    parser.add_argument('-f', '--force', default="false", help='force apply', type=str)
 
     return parser
 
 if __name__ == '__main__':
     parser = construct_parser()
     args = parser.parse_args()
-    run_vent_pipline_across_folder(args.in_dir)
+    run_vent_pipline_across_folder(args.in_dir, args.force.lower() == "true")
