@@ -7,6 +7,7 @@ import torch
 from scipy.ndimage import distance_transform_edt
 from twaidata.MRI_preprep.io import save_nii_img, load_nii_img
 from twaidata.MRI_preprep.resample import resample_images_to_original_spacing_and_save
+import argparse
 
 SYNTH_SEG_PYTHON_PATH = "/home/s2208943/miniconda3/envs/synthseg_38/bin/python"
 SYNTH_SEG_PREDICT_PATH = "/home/s2208943/SynthSeg/scripts/commands/SynthSeg_predict.py"
@@ -21,8 +22,8 @@ def run_synthseg(in_file, out_folder):
     subprocess.run([
         SYNTH_SEG_PYTHON_PATH,
         SYNTH_SEG_PREDICT_PATH,
-        f"--i {in_file}",
-        f"--o {out_folder},
+        "--i", in_file,
+        "--o", out_folder,
     ])
 
 def create_ventricle_distance_map(synthseg_file, out_file):
@@ -34,7 +35,7 @@ def create_ventricle_distance_map(synthseg_file, out_file):
     
     synthseg, synthseg_header = load_nii_img(synthseg_file)
     spacing = sitk.ReadImage(synthseg_file).GetSpacing()
-    if spacing[0] != 1 or spacing[1] != 1 pr spacing[2] != 1:
+    if spacing[0] != 1 or spacing[1] != 1 or spacing[2] != 1:
         raise ValueError(f"image spacing must be (1, 1, 1) to compute distance map, not {spacing}")
     
     ventricle_seg = ((synthseg == VENTRICLE_1) | (synthseg == VENTRICLE_2)).astype(np.float32)
@@ -62,16 +63,16 @@ def run_ventricle_seg_pipeline(in_file, out_folder, force=False):
     ventdistance_file = filename + "_vent_distance.nii.gz"
     
     # skip if file exists
-    if not force and os.path.exists(vendistance_file):
-        print(f"SKIPPING {infile} since file exists and force=False")
+    if not force and os.path.exists(ventdistance_file):
+        print(f"SKIPPING {in_file} since file exists and force=False")
     
-    print(f"PROCESSING {infile}")
+    print(f"PROCESSING {in_file}")
     
     # run synth seg
     run_synthseg(in_file, out_folder)
     
     # create ventricle distance map
-    create_ventricle_distance_map(synthseg_file, out_file)
+    create_ventricle_distance_map(synthseg_file, ventdistance_file)
     
     # resample the synthseg and ventricle distance map
     resample_images_to_original_spacing_and_save(
@@ -93,7 +94,7 @@ def run_vent_pipline_across_folder(folder, force=False):
     files = [f for f in files if "_T1.nii.gz" in f]
     
     # add folder name
-    if folder[-1] = "/":
+    if folder[-1] == '/':
         folder = folder[:-1]
     files = [os.path.join(folder, f) for f in files]
     
@@ -101,3 +102,16 @@ def run_vent_pipline_across_folder(folder, force=False):
     for f in files:
         run_ventricle_seg_pipeline(f, folder, force=force)
 
+
+def construct_parser():
+    # preprocessing settings
+    parser = argparse.ArgumentParser(description = "MRI nii.gz simple preprocessing pipeline")
+    
+    parser.add_argument('-i', '--in_dir', required=True, help='folder containing T1 images ending _T1.nii.gz to be processed')
+
+    return parser
+
+if __name__ == '__main__':
+    parser = construct_parser()
+    args = parser.parse_args()
+    run_vent_pipline_across_folder(args.in_dir)
