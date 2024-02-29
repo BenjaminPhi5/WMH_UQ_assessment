@@ -9,6 +9,8 @@ from twaidata.MRI_preprep.io import save_nii_img, load_nii_img
 from twaidata.MRI_preprep.resample import resample_images_to_original_spacing_and_save
 import argparse
 from natsort import natsorted
+from pathlib import Path
+
 
 SYNTH_SEG_PYTHON_PATH = "/home/s2208943/miniconda3/envs/synthseg_38/bin/python"
 SYNTH_SEG_PREDICT_PATH = "/home/s2208943/SynthSeg/scripts/commands/SynthSeg_predict.py"
@@ -71,6 +73,9 @@ def run_ventricle_seg_pipeline(in_file, out_folder, force=False):
         return
     
     print(f"PROCESSING {in_file}")
+    Path(ventdistance_file).touch() # create this so that other processes running in parallel
+    # dont start working on the same file.
+    
     
     # run synth seg
     run_synthseg(in_file, out_folder)
