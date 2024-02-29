@@ -81,3 +81,12 @@ def resample_and_return(filename_in, is_label=False, out_spacing=[1., 1., 3.]):
     resampled_image = get_resampled_img(image, out_spacing, is_label=is_label)
     
     return sitk.GetArrayFromImage(resampled_image)
+
+def resample_images_to_original_spacing_and_save(orig_image_path, new_image_paths, is_labels):
+    """
+    resample a set of images to the spacing of orig_image_path
+    """
+    outspacing = sitk.ReadImage(orig_image_path).GetSpacing()
+    for path, is_label in zip(new_image_paths, is_labels):
+        resample_and_save(path, path, is_label=is_label, out_spacing=outspacing, overwrite=True)
+    
