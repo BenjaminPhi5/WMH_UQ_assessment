@@ -101,7 +101,7 @@ class WMHChallengeInterRaterDirParser(DirectoryParser):
                     "islabel":True
                 }
                 
-                self.files_map[ind] = ind_files_map
+                self.files_map[f"{domain}_{ind}"] = ind_files_map
     
     
 if __name__ == "__main__":
