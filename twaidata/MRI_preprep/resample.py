@@ -4,11 +4,13 @@ import matplotlib.pyplot as plt
 import os
 
 # resamples an image
-def get_resampled_img(itk_image, out_spacing=[2.0, 2.0, 2.0], original_spacing=[1., 1., 3.], is_label=False):
+def get_resampled_img(itk_image, out_spacing=[2.0, 2.0, 2.0], original_spacing=[1., 1., 3.], is_label=False, verbose=True):
     
-    print("original spacing: ", original_spacing)
+    if verbose:
+        print("original spacing: ", original_spacing)
     if not original_spacing:
-        print("using original spacing derived from image")
+        if verbose:
+            print("using original spacing derived from image")
         # orig spacing can be specified when the input itk_image does not know its actual spacing.
         original_spacing = itk_image.GetSpacing()
     original_size = itk_image.GetSize()
