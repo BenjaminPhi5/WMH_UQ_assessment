@@ -47,6 +47,8 @@ import SimpleITK as sitk
 from twaidata.MRI_preprep.resample import get_resampled_img
 import cc3d
 
+uncertainty_thresholds = torch.arange(0, 0.7, 0.01)
+
 def UIRO(pred, thresholded_umap, seg1, seg2):
     IR = (seg1 != seg2)
     error = (seg1 == seg2) * (seg1 != pred)
@@ -673,7 +675,7 @@ def IOU_region_UIRO(ent, rater_diff, no_overlap_distance_map, low_overlap_distan
         
         return uiro_no_overlap, uiro_low_overlap, uiro_high_overlap
 
-def connected_component_analysis_v2(means, ent_maps, rater0, rater1, pv_region_masks, region='all'):
+def connected_component_analysis_v2(xs3d_test, means, ent_maps, rater0, rater1, pv_region_masks, region='all'):
     all_sizes = []
     all_ious = []
     all_match_sizes = []
@@ -902,12 +904,18 @@ def connected_component_analysis_v2(means, ent_maps, rater0, rater1, pv_region_m
 #         uiro_high_overlap_all # n * uncert_thresh
 #     )
 
+    num_FP_uncertainty_ccs_all = torch.Tensor(num_FP_uncertainty_ccs_all)
+    mean_size_FP_uncertainty_ccs_all = torch.Tensor(mean_size_FP_uncertainty_ccs_all)
+    uiro_no_overlap_all = torch.Tensor(uiro_no_overlap_all)
+    uiro_low_overlap_all = torch.Tensor(uiro_low_overlap_all)
+    uiro_high_overlap_all = torch.Tensor(uiro_high_overlap_all)
+    
     overall_results = {
-        **{f"{region}_num_FP_uncertainty_ccs_all_t{t:.2f}":num_FP_uncertainty_ccs_all[ti] for for ti, t in enumerate(uncertainty_thresholds)},
-        **{f"{region}_mean_size_FP_uncertainty_ccs_all_t{t:.2f}":mean_size_FP_uncertainty_ccs_all[ti] for for ti, t in enumerate(uncertainty_thresholds)},
-        **{f"{region}_uiro_no_overlap_all_t{t:.2f}":uiro_no_overlap_all[ti] for for ti, t in enumerate(uncertainty_thresholds)},
-        **{f"{region}_uiro_low_overlap_all_t{t:.2f}":uiro_low_overlap_all[ti] for for ti, t in enumerate(uncertainty_thresholds)},
-        **{f"{region}_uiro_high_overlap_all_t{t:.2f}":uiro_high_overlap_all[ti] for for ti, t in enumerate(uncertainty_thresholds)},
+        **{f"{region}_num_FP_uncertainty_ccs_all_t{t:.2f}":num_FP_uncertainty_ccs_all[:,ti] for ti, t in enumerate(uncertainty_thresholds)},
+        **{f"{region}_mean_size_FP_uncertainty_ccs_all_t{t:.2f}":mean_size_FP_uncertainty_ccs_all[:,ti] for ti, t in enumerate(uncertainty_thresholds)},
+        **{f"{region}_uiro_no_overlap_all_t{t:.2f}":uiro_no_overlap_all[:,ti] for ti, t in enumerate(uncertainty_thresholds)},
+        **{f"{region}_uiro_low_overlap_all_t{t:.2f}":uiro_low_overlap_all[:,ti] for ti, t in enumerate(uncertainty_thresholds)},
+        **{f"{region}_uiro_high_overlap_all_t{t:.2f}":uiro_high_overlap_all[:,ti] for ti, t in enumerate(uncertainty_thresholds)},
     }
     
     pixelwise_and_cc_results = {**{

@@ -214,21 +214,27 @@ def main(args):
     ys3d_test = []
     pv_region_masks = []
 
+    ds_name = args.dataset.lower()
     if ds_name == "mss3":
         r0_id = "wmhes"
         r1_id = "wmhmvh"
         ds_ir_folder = "MSS3_InterRaterData"
+        ds = MSS3InterRaterDataset()
     elif ds_name == "lbc":
         r0_id = "wmh"
         r1_id = "wmh_flthresh"
         ds_ir_folder = "LBC_InterRaterData"
+        ds = LBCInterRaterDataset()
     elif ds_name == "challenge":
         r0_id = "wmho3"
         r1_id = "wmho4"
         ds_ir_folder = "WMHChallenge_InterRaterData"
+        ds = WMHChallengeInterRaterDataset()
+    else:
+        raise ValueError(f"dataset name {ds_name} unknown")
 
 
-    for (xs, ys, ind) in tqdm(mss3_ds):
+    for (xs, ys, ind) in tqdm(ds):
         if ind in ['MSS3_ED_073_V1', 'MSS3_ED_075_V1', 'MSS3_ED_078_V1', 'MSS3_ED_079_V1']:
             print("found")
             continue
@@ -350,7 +356,6 @@ def main(args):
                     pixelwise_and_cc_results[num_samples]['edJFP'] = edJFP
                     pixelwise_and_cc_results[num_samples]['edJFN'] = edJFN
                     pixelwise_and_cc_results[num_samples]['edIR'] = edIR
-                    np.savez("/home/s2208943/ipdis/results/pixel_wise_inter_rater_stats/" + f"voxelwise_IRstats_{args.dataset}_{args.uncertainty_type}_cv{args.cv_split}_ns{num_samples}.npz", pixelwise_and_cc_results[num_samples], allow_pickle=True)
 
                     print("volume difference distribution information")
                     vds_rater0, vds_rater1, vds_rater_mean, sample_vol_skew = vd_dist_and_skew(samples, rater0, rater1)
@@ -363,17 +368,18 @@ def main(args):
                         overall_results[num_samples][f'vds_rater_mean_sample{ns}'] = vds_rater_mean[:,ns]
                     overall_results[num_samples]['sample_vol_skew'] = sample_vol_skew
 
-                if num_samples == 10:
+                if num_samples in all_result_ns:
                     print("COLLECTING ALL VVC2 RESULTS")
-                    ccv2_all_overall, ccv2_all_pixelwise_and_cc = connected_component_analysis_v2(means, ent_maps, rater0, rater1, pv_region_masks, region='all')
+                    ccv2_all_overall, ccv2_all_pixelwise_and_cc = connected_component_analysis_v2(xs3d_test, means, ent_maps, rater0, rater1, pv_region_masks, region='all')
                     print("COLLECTING DEEP VVC2 RESULTS")
-                    ccv2_deep_overall, ccv2_deep_pixelwise_and_cc = connected_component_analysis_v2(means, ent_maps, rater0, rater1, pv_region_masks, region='deep')
+                    ccv2_deep_overall, ccv2_deep_pixelwise_and_cc = connected_component_analysis_v2(xs3d_test, means, ent_maps, rater0, rater1, pv_region_masks, region='deep')
                     print("COLLECTING PV VVC2 RESULTS")
-                    ccv2_pv_overall, ccv2_pv_pixelwise_and_cc = connected_component_analysis_v2(means, ent_maps, rater0, rater1, pv_region_masks, region='pv')
+                    ccv2_pv_overall, ccv2_pv_pixelwise_and_cc = connected_component_analysis_v2(xs3d_test, means, ent_maps, rater0, rater1, pv_region_masks, region='pv')
                     
                     pixelwise_and_cc_results[num_samples].update(ccv2_all_pixelwise_and_cc)
                     pixelwise_and_cc_results[num_samples].update(ccv2_deep_pixelwise_and_cc)
                     pixelwise_and_cc_results[num_samples].update(ccv2_pv_pixelwise_and_cc)
+                    np.savez("/home/s2208943/ipdis/results/pixel_wise_and_cc_inter_rater_stats/" + f"voxelwise_IRstats_{args.dataset}_{args.uncertainty_type}_cv{args.cv_split}_ns{num_samples}.npz", pixelwise_and_cc_results[num_samples], allow_pickle=True)
                     
                     overall_results[num_samples].update(ccv2_all_overall)
                     overall_results[num_samples].update(ccv2_deep_overall)
