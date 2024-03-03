@@ -308,9 +308,13 @@ def soft_per_rater_UEO(pred, umap, seg1, seg2):
     
     return soft_dice(umap, error1), soft_dice(umap, error2)
 
-def soft_ueo_metrics(means, ent_maps, rater0, rater1, xs3d_test):
+def soft_ueo_metrics(means, ent_maps, rater0, rater1, xs3d_test, pv_region_masks):
     sUIRO = []
     sJUEO = []
+    deep_sUIRO = []
+    deep_sJUEO = []
+    pv_sUIRO = []
+    pv_sJUEO = []
     sUEO_r1 = []
     sUEO_r2 = []
     s_ed_UIRO = []
@@ -319,9 +323,13 @@ def soft_ueo_metrics(means, ent_maps, rater0, rater1, xs3d_test):
         m = means[i].argmax(dim=1).cuda()
         e = ent_maps[i].cuda()
         y0, y1 = rater0[i].cuda(), rater1[i].cuda()
+        pv_region = pv_region_masks[i].cuda()
+        deep_region = 1 - pv_region
         
         sUIRO.append(soft_UIRO(m, e.clone(), y0, y1))
+        
         sJUEO.append(soft_JUEO(m, e.clone(), y0, y1))
+        
         s_ed_UIRO.append(soft_edge_deducted_UIRO(m, e.clone(), y0, y1))
         s_ed_JUEO.append(soft_edge_deducted_JUEO(m, e.clone(), y0, y1))
         
@@ -329,7 +337,14 @@ def soft_ueo_metrics(means, ent_maps, rater0, rater1, xs3d_test):
         sUEO_r1.append(sueo1)
         sUEO_r2.append(sueo2)
         
-    return sUIRO, sJUEO, sUEO_r1, sUEO_r2, s_ed_UIRO, s_ed_JUEO
+        if m.shape[0] != pv_region.shape[0] or m.shape[1] != pv_region.shape[1] or x.shape[2] != pv_region.shape[2]:
+                continue
+        deep_sUIRO.append(soft_UIRO(m * deep_region, e.clone() * deep_region, y0 * deep_region, y1 * deep_region))
+        pv_sUIRO.append(soft_UIRO(m * pv_region, e.clone() * pv_region, y0 * pv_region, y1 * pv_region))
+        deep_sJUEO.append(soft_JUEO(m * deep_region, e.clone() * deep_region, y0 * deep_region, y1 * deep_region))
+        pv_sJUEO.append(soft_JUEO(m * pv_region, e.clone() * pv_region, y0 * pv_region, y1 * pv_region))
+        
+    return sUIRO, sJUEO, sUEO_r1, sUEO_r2, s_ed_UIRO, s_ed_JUEO, deep_sUIRO, deep_sJUEO, pv_sUIRO, pv_sJUEO
 
 def conn_comp_analysis(means, ent_maps, rater0, rater1):
     

@@ -235,7 +235,7 @@ def main(args):
 
 
     for (xs, ys, ind) in tqdm(ds):
-        if ind in ['MSS3_ED_073_V1', 'MSS3_ED_075_V1', 'MSS3_ED_078_V1', 'MSS3_ED_079_V1']:
+        if ind in ['MSS3_ED_073_V1', 'MSS3_ED_075_V1', 'MSS3_ED_078_V1', 'MSS3_ED_079_V1']: # get rid of mss3 files with flipped images
             print("found")
             continue
         if r0_id in ys.keys() and r1_id in ys.keys():
@@ -325,13 +325,17 @@ def main(args):
                         overall_results[num_samples][f'no_edge_jueo_curves_t{t:.2f}'] = no_edge_jueo_curves[:,ti]
 
                     print("soft UEO metrics values")
-                    sUIRO, sJUEO, sUEO_r1, sUEO_r2, s_ed_UIRO, s_ed_JUEO = soft_ueo_metrics(means, ent_maps, rater0, rater1, xs3d_test)
+                    sUIRO, sJUEO, sUEO_r1, sUEO_r2, s_ed_UIRO, s_ed_JUEO, deep_sUIRO, deep_sJUEO, pv_sUIRO, pv_sJUEO = soft_ueo_metrics(means, ent_maps, rater0, rater1, xs3d_test, pv_region_masks)
                     overall_results[num_samples]['sUIRO'] = sUIRO
                     overall_results[num_samples]['sJUEO'] = sJUEO
                     overall_results[num_samples]['sUEO_r1'] = sUEO_r1
                     overall_results[num_samples]['sUEO_r2'] = sUEO_r2
                     overall_results[num_samples]['s_ed_UIRO'] = s_ed_UIRO
                     overall_results[num_samples]['s_ed_JUEO'] = s_ed_JUEO
+                    overall_results[num_samples]['deep_sUIRO'] = deep_sUIRO
+                    overall_results[num_samples]['deep_sJUEO'] = pv_sJUEO
+                    overall_results[num_samples]['pv_sUIRO'] = deep_sUIRO
+                    overall_results[num_samples]['pv_sJUEO'] = pv_sJUEO
 
                     print("connected component analysis")
                     ind_entirely_uncert, ind_proportion_uncertain, ind_mean_uncert, ind_sizes = conn_comp_analysis(means, ent_maps, rater0, rater1)
