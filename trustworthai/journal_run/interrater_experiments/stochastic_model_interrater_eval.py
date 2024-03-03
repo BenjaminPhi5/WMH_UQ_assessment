@@ -333,8 +333,8 @@ def main(args):
                     overall_results[num_samples]['s_ed_UIRO'] = s_ed_UIRO
                     overall_results[num_samples]['s_ed_JUEO'] = s_ed_JUEO
                     overall_results[num_samples]['deep_sUIRO'] = deep_sUIRO
-                    overall_results[num_samples]['deep_sJUEO'] = pv_sJUEO
-                    overall_results[num_samples]['pv_sUIRO'] = deep_sUIRO
+                    overall_results[num_samples]['deep_sJUEO'] = deep_sJUEO
+                    overall_results[num_samples]['pv_sUIRO'] = pv_sUIRO
                     overall_results[num_samples]['pv_sJUEO'] = pv_sJUEO
 
                     print("connected component analysis")
@@ -352,15 +352,16 @@ def main(args):
                     print("pixelwise analysis")
                     JTP, JFP, JFN, IR = pixelwise_metrics(means, ent_maps, rater0, rater1, xs3d_test)
                     edJTP, edJFP, edJFN, edIR = edge_deducted_pixelwise_metrics(means, ent_maps, rater0, rater1, xs3d_test)
-                    pixelwise_and_cc_results[num_samples]['JTP'] = JTP
-                    pixelwise_and_cc_results[num_samples]['JFP'] = JFP
-                    pixelwise_and_cc_results[num_samples]['JFN'] = JFN
-                    pixelwise_and_cc_results[num_samples]['IR'] = IR
-                    pixelwise_and_cc_results[num_samples]['edJTP'] = edJTP 
-                    pixelwise_and_cc_results[num_samples]['edJFP'] = edJFP
-                    pixelwise_and_cc_results[num_samples]['edJFN'] = edJFN
-                    pixelwise_and_cc_results[num_samples]['edIR'] = edIR
-
+                    pixelwise_and_cc_results[num_samples]['JTP'] = torch.cat(JTP)
+                    pixelwise_and_cc_results[num_samples]['JFP'] = torch.cat(JFP)
+                    pixelwise_and_cc_results[num_samples]['JFN'] = torch.cat(JFN)
+                    pixelwise_and_cc_results[num_samples]['IR'] = torch.cat(IR)
+                    pixelwise_and_cc_results[num_samples]['edJTP'] = torch.cat(edJTP) 
+                    pixelwise_and_cc_results[num_samples]['edJFP'] = torch.cat(edJFP)
+                    pixelwise_and_cc_results[num_samples]['edJFN'] = torch.cat(edJFN)
+                    pixelwise_and_cc_results[num_samples]['edIR'] = torch.cat(edIR)
+                    # np.savez("/home/s2208943/ipdis/results/pixel_wise_and_cc_inter_rater_stats/" + f"voxelwise_IRstats_{args.dataset}_{args.uncertainty_type}_cv{args.cv_split}_ns{num_samples}.npz", **pixelwise_and_cc_results[num_samples])
+                    
                     print("volume difference distribution information")
                     vds_rater0, vds_rater1, vds_rater_mean, sample_vol_skew = vd_dist_and_skew(samples, rater0, rater1)
                     vds_rater0 = torch.Tensor(vds_rater0)
@@ -383,10 +384,10 @@ def main(args):
                     pixelwise_and_cc_results[num_samples].update(ccv2_all_pixelwise_and_cc)
                     pixelwise_and_cc_results[num_samples].update(ccv2_deep_pixelwise_and_cc)
                     pixelwise_and_cc_results[num_samples].update(ccv2_pv_pixelwise_and_cc)
-                    np.savez("/home/s2208943/ipdis/results/pixel_wise_and_cc_inter_rater_stats/" + f"voxelwise_IRstats_{args.dataset}_{args.uncertainty_type}_cv{args.cv_split}_ns{num_samples}.npz", pixelwise_and_cc_results[num_samples], allow_pickle=True)
+                    np.savez("/home/s2208943/ipdis/results/pixel_wise_and_cc_inter_rater_stats/" + f"voxelwise_IRstats_{args.dataset}_{args.uncertainty_type}_cv{args.cv_split}_ns{num_samples}.npz", **pixelwise_and_cc_results[num_samples])
                     
-                    overall_results[num_samples].update(ccv2_all_overall)
-                    overall_results[num_samples].update(ccv2_deep_overall)
+                    # overall_results[num_samples].update(ccv2_all_overall)
+                    # overall_results[num_samples].update(ccv2_deep_overall)
                     overall_results[num_samples].update(ccv2_pv_overall)
                     
                 # best dice when sorting the sample for dice

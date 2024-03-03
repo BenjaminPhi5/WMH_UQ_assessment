@@ -337,7 +337,7 @@ def soft_ueo_metrics(means, ent_maps, rater0, rater1, xs3d_test, pv_region_masks
         sUEO_r1.append(sueo1)
         sUEO_r2.append(sueo2)
         
-        if m.shape[0] != pv_region.shape[0] or m.shape[1] != pv_region.shape[1] or x.shape[2] != pv_region.shape[2]:
+        if m.shape[0] != pv_region.shape[0] or m.shape[1] != pv_region.shape[1] or m.shape[2] != pv_region.shape[2]:
                 continue
         deep_sUIRO.append(soft_UIRO(m * deep_region, e.clone() * deep_region, y0 * deep_region, y1 * deep_region))
         pv_sUIRO.append(soft_UIRO(m * pv_region, e.clone() * pv_region, y0 * pv_region, y1 * pv_region))
@@ -737,6 +737,8 @@ def connected_component_analysis_v2(xs3d_test, means, ent_maps, rater0, rater1, 
             y1 = y1.cuda() * deep_region
             e = e * deep_region
             pred = pred * deep_region
+        else:
+            raise ValueError("region unknown")
 
         ccs_y0 = cc3d.connected_components(y0.cpu().type(torch.int32).numpy(), connectivity=26) # 26-connected
         ccs_y0 = torch.from_numpy(ccs_y0.astype(np.float32)).cuda()
@@ -933,6 +935,16 @@ def connected_component_analysis_v2(xs3d_test, means, ent_maps, rater0, rater1, 
         **{f"{region}_uiro_high_overlap_all_t{t:.2f}":uiro_high_overlap_all[:,ti] for ti, t in enumerate(uncertainty_thresholds)},
     }
     
+    ent_no_overlap_all = torch.Tensor(ent_no_overlap_all).cpu().numpy()
+    ent_low_overlap_all = torch.Tensor(ent_low_overlap_all).cpu().numpy()
+    ent_high_overlap_all = torch.Tensor(ent_high_overlap_all).cpu().numpy()
+    ent_exact_overlap_all = torch.Tensor(ent_exact_overlap_all).cpu().numpy()
+    
+    none_cc_mean = torch.Tensor(none_cc_mean).cpu().numpy()
+    low_cc_mean = torch.Tensor(low_cc_mean).cpu().numpy()
+    high_cc_mean = torch.Tensor(high_cc_mean).cpu().numpy()
+    exact_cc_mean = torch.Tensor(exact_cc_mean).cpu().numpy()
+    
     pixelwise_and_cc_results = {**{
         f"{region}_ent_no_overlap_all_pixels":ent_no_overlap_all ,
         f"{region}_ent_low_overlap_all_pixels":ent_low_overlap_all ,
@@ -943,10 +955,10 @@ def connected_component_analysis_v2(xs3d_test, means, ent_maps, rater0, rater1, 
         f"{region}_high_cc_mean":high_cc_mean ,
         f"{region}_exact_cc_mean":exact_cc_mean ,
     }, 
-        **{f"{region}_none_prop_uncert_all_t{t:.2f}":none_prop_uncert_all[ti] for ti, t in enumerate(uncertainty_thresholds)},
-        **{f"{region}_low_prop_uncert_all_t{t:.2f}":low_prop_uncert_all[ti] for ti, t in enumerate(uncertainty_thresholds)},
-        **{f"{region}_high_prop_uncert_all_t{t:.2f}":high_prop_uncert_all[ti] for ti, t in enumerate(uncertainty_thresholds)},
-        **{f"{region}_exact_prop_uncert_all_t{t:.2f}":exact_prop_uncert_all[ti] for ti, t in enumerate(uncertainty_thresholds)},
+        **{f"{region}_none_prop_uncert_all_t{t:.2f}":torch.Tensor(none_prop_uncert_all[ti]).cpu().numpy() for ti, t in enumerate(uncertainty_thresholds)},
+        **{f"{region}_low_prop_uncert_all_t{t:.2f}":torch.Tensor(low_prop_uncert_all[ti]).cpu().numpy() for ti, t in enumerate(uncertainty_thresholds)},
+        **{f"{region}_high_prop_uncert_all_t{t:.2f}":torch.Tensor(high_prop_uncert_all[ti]).cpu().numpy() for ti, t in enumerate(uncertainty_thresholds)},
+        **{f"{region}_exact_prop_uncert_all_t{t:.2f}":torch.Tensor(exact_prop_uncert_all[ti]).cpu().numpy() for ti, t in enumerate(uncertainty_thresholds)},
                                }
     
     return overall_results, pixelwise_and_cc_results
