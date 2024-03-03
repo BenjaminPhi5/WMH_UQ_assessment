@@ -64,6 +64,7 @@ from trustworthai.utils.uncertainty_maps.entropy_map import entropy_map_from_sam
 from trustworthai.journal_run.evaluation.new_scripts.eval_helper_functions import *
 from trustworthai.journal_run.evaluation.new_scripts.model_predictions import *
 from trustworthai.analysis.connected_components.connected_comps_2d import *
+from trustworthai.journal_run.interrater_experiments.interrater_eval_helper_funcs import *
 
 
 from trustworthai.utils.data_preprep.dataset_pipelines import load_clinscores_data, load_data, ClinScoreDataRetriever
@@ -97,512 +98,6 @@ VOXELS_TO_WMH_RATIO_EXCLUDING_EMPTY_SLICES = 140
 
 uncertainty_thresholds = torch.arange(0, 0.7, 0.01)
 
-def UIRO(pred, thresholded_umap, seg1, seg2):
-    IR = (seg1 != seg2)
-    error = (seg1 == seg2) * (seg1 != pred)
-    thresholded_umap[error] = 0
-    return fast_dice(thresholded_umap, IR)
-
-
-def JUEO(pred, thresholded_umap, seg1, seg2):
-    IR = (seg1 != seg2)
-    error = (seg1 == seg2) * (seg1 != pred)
-    thresholded_umap[IR] = 0
-    return fast_dice(thresholded_umap, error)
-
-def per_rater_UEO(pred, thresholded_umap, seg1, seg2):
-    error1 = (seg1 != pred)
-    error2 = (seg2 != pred)
-    
-    return fast_dice(thresholded_umap, error1), fast_dice(thresholded_umap, error2)
-
-def per_threshold_ueos(means, ent_maps, rater0, rater1, xs3d_test):
-    uiro_curves = []
-    jueo_curves = []
-    for i in tqdm(range(len(xs3d_test))):
-        uiro = []
-        jueo = []
-        m = means[i].argmax(dim=1).cuda()
-        for t in uncertainty_thresholds:
-            e = ent_maps[i] > t
-            e = e.cuda()
-            uiro.append(UIRO(m, e.clone(), rater0[i].cuda(), rater1[i].cuda()))
-            jueo.append(JUEO(m, e.clone(), rater0[i].cuda(), rater1[i].cuda()))
-        uiro_curves.append(uiro)
-        jueo_curves.append(jueo)
-        
-    return uiro_curves, jueo_curves
-
-def get_2rater_rmse(pred, y0, y1, p=0.1):
-    label = torch.zeros(pred.shape, device='cuda')
-    label[:,0] = (y0 == 0) & (y1 == 0)
-    label[:,1] = (y0 == 1) & (y1 == 1)
-    diff = (y0 != y1)
-    label[:,0][diff] = 0.5
-    label[:, 1][diff] = 0.5
-    
-    locs = pred[:,1] > p
-    # print(pred.shape)
-    
-    pred = pred.moveaxis(1, -1)[locs]
-    label = label.moveaxis(1, -1)[locs]
-    
-    rmse = ((pred - label).square().sum(dim=1) / pred.shape[1]).mean().sqrt()
-
-    return rmse.item()
-
-def get_IR_rmse(pred, y0, y1, p=0.1):
-    label = torch.zeros(pred.shape, device='cuda')
-    label[:,0] = (y0 == 0) & (y1 == 0)
-    label[:,1] = (y0 == 1) & (y1 == 1)
-    diff = (y0 != y1)
-    label[:,0][diff] = 0.5
-    label[:, 1][diff] = 0.5
-    
-    locs = diff
-    # print(pred.shape)
-    
-    pred = pred.moveaxis(1, -1)[locs]
-    label = label.moveaxis(1, -1)[locs]
-    
-    rmse = ((pred - label).square().sum(dim=1) / pred.shape[1]).mean().sqrt()
-
-    return rmse.item()
-
-import torch
-import torch.nn.functional as F
-
-def dilate(tensor, kernel_size=3, iterations=1):
-    """
-    Dilate a 3D binary tensor using a cubic kernel.
-    
-    Parameters:
-    - tensor: A 3D binary tensor of shape (C, H, W, D) where C is the channel (1 for binary images).
-    - kernel_size: Size of the cubic kernel for dilation.
-    - iterations: Number of times dilation is applied.
-    
-    Returns:
-    - Dilated tensor.
-    """
-    padding = kernel_size // 2
-    kernel = torch.ones((1, 1, kernel_size, kernel_size, kernel_size), device=tensor.device)
-    for _ in range(iterations):
-        tensor = F.conv3d(tensor, kernel, padding=padding, groups=1)
-    return torch.clamp(tensor, 0, 1)
-
-def erode(tensor, kernel_size=3, iterations=1):
-    """
-    Erode a 3D binary tensor using a cubic kernel.
-    
-    Parameters:
-    - tensor: A 3D binary tensor of shape (C, H, W, D).
-    - kernel_size: Size of the cubic kernel for erosion.
-    - iterations: Number of times erosion is applied.
-    
-    Returns:
-    - Eroded tensor.
-    """
-    padding = kernel_size // 2
-    kernel = torch.ones((1, 1, kernel_size, kernel_size, kernel_size), device=tensor.device)
-    for _ in range(iterations):
-        tensor = F.conv3d(1 - tensor, kernel, padding=padding, groups=1)
-    return 1 - torch.clamp(tensor, 0, 1)
-
-def find_edges(tensor, kernel_size=3):
-    """
-    Find the inner and outer edges of a segmentation in a 3D binary tensor.
-    
-    Parameters:
-    - tensor: A 3D binary tensor of shape (H, W, D).
-    - kernel_size: Size of the cubic kernel for dilation and erosion.
-    
-    Returns:
-    - inner_edges: The inner edges of the segmentation.
-    - outer_edges: The outer edges of the segmentation.
-    """
-    tensor = tensor.unsqueeze(0)
-    dilated = dilate(tensor, kernel_size)
-    eroded = erode(tensor, kernel_size)
-    outer_edges = dilated - tensor
-    inner_edges = tensor - eroded
-    
-    outer_edges = outer_edges.squeeze()
-    inner_edges = inner_edges.squeeze()
-    
-    return inner_edges, outer_edges
-
-
-def get_rmse_stats(means, rater0, rater1):
-    rmses = []
-    IR_rmses = []
-    p = 0.1
-    for i in tqdm(range(len(means))):
-        y0 = rater0[i]
-        y1 = rater1[i]
-        m = means[i].cuda()
-        m = m.softmax(dim=1)
-        rmse = get_2rater_rmse(m, y0, y1, p)
-        ir_rmse = get_IR_rmse(m, y0, y1, p)
-
-        rmses.append(rmse)
-        IR_rmses.append(ir_rmse)
-        
-    return rmses, IR_rmses
-    
-def edge_deducted_UIRO(pred, thresholded_umap, seg1, seg2):
-    pred = pred.type(torch.float32).cuda()
-    inner_edge, outer_edge = find_edges(pred)#.unsqueeze(0))
-    seg1 = seg1.cuda()
-    seg2 = seg2.cuda()
-    
-    IR = (seg1 != seg2)
-    error = (seg1 == seg2) * (seg1 != pred)
-    thresholded_umap[error] = 0
-    
-    non_edge_locs = ((1-inner_edge) * (1 - outer_edge)) == 1
-    thresholded_umap *= non_edge_locs
-    IR *= non_edge_locs
-    
-    return fast_dice(thresholded_umap, IR)
-
-
-def edge_deducted_JUEO(pred, thresholded_umap, seg1, seg2):
-    pred = pred.type(torch.float32).cuda()
-    inner_edge, outer_edge = find_edges(pred)#.unsqueeze(0))
-    seg1 = seg1.cuda()
-    seg2 = seg2.cuda()
-    
-    IR = (seg1 != seg2)
-    error = (seg1 == seg2) * (seg1 != pred)
-    thresholded_umap[IR] = 0
-    
-    non_edge_locs = ((1-inner_edge) * (1 - outer_edge)) == 1
-    thresholded_umap *= non_edge_locs
-    error *= non_edge_locs
-    
-    return fast_dice(thresholded_umap, error)
-
-def per_threshold_edge_deducted_ueos(means, ent_maps, rater0, rater1, xs3d_test):
-    uiro_curves = []
-    jueo_curves = []
-    for i in tqdm(range(len(xs3d_test))):
-        uiro = []
-        jueo = []
-        m = means[i].argmax(dim=1).cuda()
-        for t in uncertainty_thresholds:
-            e = ent_maps[i] > t
-            e = e.cuda()
-            uiro.append(edge_deducted_UIRO(m, e.clone(), rater0[i].cuda(), rater1[i].cuda()))
-            jueo.append(edge_deducted_JUEO(m, e.clone(), rater0[i].cuda(), rater1[i].cuda()))
-        uiro_curves.append(uiro)
-        jueo_curves.append(jueo)
-        
-    return uiro_curves, jueo_curves
-
-def soft_dice(pred, target):
-    
-    numerator = 2 * (pred * target).sum()
-    denominator = (target**2).sum() + (pred**2).sum()
-    
-    return (numerator / denominator).item()
-
-
-def soft_edge_deducted_UIRO(pred, umap, seg1, seg2):
-    pred = pred.type(torch.float32).cuda()
-    inner_edge, outer_edge = find_edges(pred)#.unsqueeze(0))
-    seg1 = seg1.cuda()
-    seg2 = seg2.cuda()
-    
-    IR = (seg1 != seg2)
-    error = (seg1 == seg2) * (seg1 != pred)
-    umap[error] = 0
-    
-    non_edge_locs = ((1-inner_edge) * (1 - outer_edge)) == 1
-    umap *= non_edge_locs
-    IR *= non_edge_locs
-    
-    return soft_dice(umap, IR)
-
-
-def soft_edge_deducted_JUEO(pred, umap, seg1, seg2):
-    pred = pred.type(torch.float32).cuda()
-    inner_edge, outer_edge = find_edges(pred)#.unsqueeze(0))
-    seg1 = seg1.cuda()
-    seg2 = seg2.cuda()
-    
-    IR = (seg1 != seg2)
-    error = (seg1 == seg2) * (seg1 != pred)
-    umap[IR] = 0
-    
-    non_edge_locs = ((1-inner_edge) * (1 - outer_edge)) == 1
-    umap *= non_edge_locs
-    error *= non_edge_locs
-    
-    return soft_dice(umap, error)
-
-def soft_UIRO(pred, umap, seg1, seg2):
-    IR = (seg1 != seg2)
-    error = (seg1 == seg2) * (seg1 != pred)
-    umap[error] = 0
-    return soft_dice(umap, IR)
-
-
-def soft_JUEO(pred, umap, seg1, seg2):
-    IR = (seg1 != seg2)
-    error = (seg1 == seg2) * (seg1 != pred)
-    umap[IR] = 0
-    return soft_dice(umap, error)
-
-def soft_per_rater_UEO(pred, umap, seg1, seg2):
-    error1 = (seg1 != pred)
-    error2 = (seg2 != pred)
-    
-    return soft_dice(umap, error1), soft_dice(umap, error2)
-
-def soft_ueo_metrics(means, ent_maps, rater0, rater1, xs3d_test):
-    sUIRO = []
-    sJUEO = []
-    sUEO_r1 = []
-    sUEO_r2 = []
-    s_ed_UIRO = []
-    s_ed_JUEO = []
-    for i in tqdm(range(len(xs3d_test))):
-        m = means[i].argmax(dim=1).cuda()
-        e = ent_maps[i].cuda()
-        y0, y1 = rater0[i].cuda(), rater1[i].cuda()
-        
-        sUIRO.append(soft_UIRO(m, e.clone(), y0, y1))
-        sJUEO.append(soft_JUEO(m, e.clone(), y0, y1))
-        s_ed_UIRO.append(soft_edge_deducted_UIRO(m, e.clone(), y0, y1))
-        s_ed_JUEO.append(soft_edge_deducted_JUEO(m, e.clone(), y0, y1))
-        
-        sueo1, sueo2 = soft_per_rater_UEO(m, e, y0, y1)
-        sUEO_r1.append(sueo1)
-        sUEO_r2.append(sueo2)
-        
-    return sUIRO, sJUEO, sUEO_r1, sUEO_r2, s_ed_UIRO, s_ed_JUEO
-
-def conn_comp_analysis(means, ent_maps, rater0, rater1):
-    
-    ind_entirely_uncert = []
-    ind_proportion_uncertain = []
-    ind_mean_uncert = []
-    ind_sizes = []
-
-    for i in tqdm(range(len(means))):
-        pred = means[i].cuda().argmax(dim=1)
-        e = ent_maps[i].cuda()
-        y0 = rater0[i]
-        y1 = rater1[i]
-
-        disagreement = (y0 != y1)
-
-        ccs = cc3d.connected_components(disagreement.type(torch.int32).numpy(), connectivity=26) # 26-connected
-        ccs = torch.from_numpy(ccs.astype(np.float32)).cuda()
-
-        entirely_uncertain = [[] for _ in range(len(uncertainty_thresholds))]
-        proportion_uncertain = [[] for _ in range(len(uncertainty_thresholds))]
-        mean_uncert = []
-        sizes = []
-        
-        if len(ccs.unique()) != 1:
-            for cc_id in ccs.unique():
-                if cc_id == 0:
-                    continue
-                cc = ccs == cc_id
-                size = cc.sum().item()
-                sizes.append(size)
-                mean_uncert.append(e[cc].mean().item())
-
-                for j, t in enumerate(uncertainty_thresholds):
-                    et = e > t
-                    uncert_cc_sum = (cc * et).sum().item()
-                    proportion_uncertain[j].append(uncert_cc_sum / size)
-                    entirely_uncertain[j].append(uncert_cc_sum == size)
-
-        ind_entirely_uncert.append(entirely_uncertain)
-        ind_proportion_uncertain.append(proportion_uncertain)
-        ind_mean_uncert.append(mean_uncert)
-        ind_sizes.append(sizes)
-        
-    return ind_entirely_uncert, ind_proportion_uncertain, ind_mean_uncert, ind_sizes
-
-def pixelwise_metrics(means, ent_maps, rater0, rater1, xs3d_test):
-    JTP = []
-    JFP = []
-    JFN = []
-    IR = []
-    for i in tqdm(range(len(xs3d_test))):
-        m = means[i].argmax(dim=1).cuda().type(torch.long)
-        e = ent_maps[i].cuda()
-        y0, y1 = rater0[i].cuda().type(torch.long), rater1[i].cuda().type(torch.long)
-        
-        # flatten for indexing
-        e = e.view(-1)
-        m = m.view(-1)
-        y0 = y0.view(-1)
-        y1 = y1.view(-1)
-        
-        joint = (y0 == y1)
-        ir = (y0 != y1)
-        
-        JTP.append(e[(joint * y0 * m)==1].cpu())
-        JFP.append(e[(joint * (1 - y0) * m)==1].cpu())
-        JFN.append(e[(joint * y0 * (1 - m))==1].cpu())
-        IR.append(e[ir].cpu())
-        
-    return JTP, JFP, JFN, IR
-
-def edge_deducted_pixelwise_metrics(means, ent_maps, rater0, rater1, xs3d_test):
-    JTP = []
-    JFP = []
-    JFN = []
-    IR = []
-    for i in tqdm(range(len(xs3d_test))):
-        m = means[i].argmax(dim=1).cuda().type(torch.long)
-        inner_edge, outer_edge = find_edges(m.type(torch.float32))
-        e = ent_maps[i].cuda()
-        y0, y1 = rater0[i].cuda().type(torch.long), rater1[i].cuda().type(torch.long)
-        
-        # flatten for indexing
-        e = e.view(-1)
-        m = m.view(-1)
-        y0 = y0.view(-1)
-        y1 = y1.view(-1)
-        
-        # non edge area
-        non_edge = (1-inner_edge) * (1-outer_edge)
-        non_edge = non_edge.view(-1)
-        
-        joint = (y0 == y1) * non_edge
-        ir = (y0 != y1) * (non_edge == 1)
-        
-        JTP.append(e[(joint * y0 * m)==1].cpu())
-        JFP.append(e[(joint * (1 - y0) * m)==1].cpu())
-        JFN.append(e[(joint * y0 * (1 - m))==1].cpu())
-        IR.append(e[ir].cpu())
-        
-    return JTP, JFP, JFN, IR
-
-# make sure that we have the volume difference per individual
-# make sure that this collection is put by the samples that are collected by volume!!!!!
-def vd_dist_and_skew(samples, rater0, rater1):
-    vds_rater0 = []
-    vds_rater1 = []
-    vds_rater_mean = []
-    sample_vol_skew = []
-    for i, s in tqdm(enumerate(samples), total=len(samples)):
-        y0 = rater0[i].cuda().sum().item()
-        y1 = rater1[i].cuda().sum().item()
-        y_mean = ( y0 + y1 ) / 2
-        s = s.cuda().argmax(dim=2)
-
-        vds_rater0.append([(((sj.sum() - y0) / y0) * 100).item() for sj in s])
-        vds_rater1.append([(((sj.sum() - y1) / y1) * 100).item() for sj in s])
-        vds_mean = [(((sj.sum() - y_mean) / y_mean) * 100).item() for sj in s]
-        vds_rater_mean.append(vds_mean)
-        sample_vol_skew.append(scipy.stats.skew(np.array(vds_mean), bias=True))
-    
-    return vds_rater0, vds_rater1, vds_rater_mean, sample_vol_skew
-
-def fast_iou(pred, target):
-    p1 = (pred == 1)
-    t1 = (target == 1)
-    intersection = (pred == 1) & (target == 1)
-    numerator = intersection.sum()
-    denominator = p1.sum() + t1.sum() - numerator
-    return (numerator/(denominator + 1e-30)).item()
-
-def individual_multirater_iou_GED(mean, rater_ys, sample):
-    ged = 0
-    ys = [r for r in rater_ys]
-    ss = sample.cuda().argmax(dim=2)
-    num_samples = ss.shape[0]
-
-    dists_ab = 0
-    count_ab = 0
-    for s in ss:
-        for y in ys:
-            pred = s#.argmax(dim=1)
-            dists_ab += (1 - fast_iou(pred, y.cuda()))
-            # print(dists_ab)
-            # print(s.shape)
-            count_ab += 1
-
-    dists_ab /= count_ab # num_samples # count should be num_samples * num_raters for consistent number of raters but Ive just done this count for now.
-    dists_ab *= 2
-
-    dists_aa = 0
-    count_aa = 0
-    for j, y1 in enumerate(ys):
-        for k, y2 in enumerate(ys):
-            if j == k:
-                continue
-            dists_aa += (1 - fast_iou(y1.cuda(), y2.cuda()))
-            count_aa += 1
-
-    dists_aa /= count_aa
-
-    dists_bb = 0
-    for j, s1 in enumerate(ss):
-        for k, s2 in enumerate(ss):
-            if j == k:
-                continue
-            dists_bb += (1 - fast_iou(s1, s2))
-
-    dists_bb /= (num_samples * (num_samples - 1))
-
-    ged = dists_ab - dists_aa - dists_bb
-        
-    return ged
-
-def multirater_iou_GED(means, rater_ys, samples):
-    geds = []
-    
-    for i in tqdm(range(len(means)), position=0, leave=True):
-        ys = [r[i] for r in rater_ys]
-        ss = samples[i].cuda().argmax(dim=2)
-        num_samples = ss.shape[0]
-        
-        dists_ab = 0
-        count_ab = 0
-        for s in ss:
-            for y in ys:
-                pred = s#.argmax(dim=1)
-                dists_ab += (1 - fast_iou(pred, y.cuda()))
-                # print(dists_ab)
-                # print(s.shape)
-                count_ab += 1
-        
-        dists_ab /= count_ab # num_samples # count should be num_samples * num_raters for consistent number of raters but Ive just done this count for now.
-        dists_ab *= 2
-        
-        dists_aa = 0
-        count_aa = 0
-        for j, y1 in enumerate(ys):
-            for k, y2 in enumerate(ys):
-                if j == k:
-                    continue
-                dists_aa += (1 - fast_iou(y1.cuda(), y2.cuda()))
-                count_aa += 1
-        
-        dists_aa /= count_aa
-        
-        dists_bb = 0
-        for j, s1 in enumerate(ss):
-            for k, s2 in enumerate(ss):
-                if j == k:
-                    continue
-                dists_bb += (1 - fast_iou(s1, s2))
-        
-        dists_bb /= (num_samples * (num_samples - 1))
-        
-        ged = dists_ab - dists_aa - dists_bb
-        if not np.isnan(ged):
-            geds.append(ged)
-        #break
-        
-    return torch.Tensor(geds)
 
 def construct_parser():
     parser = argparse.ArgumentParser(description = "train models")
@@ -713,34 +208,45 @@ def main(args):
     print("model dir: ", model_dir)
     model_raw, loss, val_loss = MODEL_LOADERS[args.model_type](args)
     model = load_best_checkpoint(model_raw, loss, model_dir, punet=args.model_type == "punet")
-        
-    if args.dataset.lower() == "mss3":
-        ds = MSS3InterRaterDataset()
-        xs3d_test = []
-        ys3d_test = []
+    
+    # LOAD THE XS, YS AND PV REGION MASKS
+    xs3d_test = []
+    ys3d_test = []
+    pv_region_masks = []
 
-        for (xs, ys, ind) in tqdm(ds):
-            if "wmhes" in ys.keys() and "wmhmvh" in ys.keys():
-                xs3d_test.append(torch.stack([xs['FLAIR'], xs['mask'], xs['T1']], dim=0))
-                ys3d_test.append(torch.stack([ys['wmhes'], ys['wmhmvh']], dim=0))
-    elif args.dataset.lower() == "lbc":
-        ds = LBCInterRaterDataset()
-        xs3d_test = []
-        ys3d_test = []
+    if ds_name == "mss3":
+        r0_id = "wmhes"
+        r1_id = "wmhmvh"
+        ds_ir_folder = "MSS3_InterRaterData"
+    elif ds_name == "lbc":
+        r0_id = "wmh"
+        r1_id = "wmh_flthresh"
+        ds_ir_folder = "LBC_InterRaterData"
+    elif ds_name == "challenge":
+        r0_id = "wmho3"
+        r1_id = "wmho4"
+        ds_ir_folder = "WMHChallenge_InterRaterData"
 
-        for (xs, ys, ind) in tqdm(ds):
-            if "wmh_flthresh" in ys.keys() and "wmh" in ys.keys():
-                xs3d_test.append(torch.stack([xs['FLAIR'], xs['mask'], xs['T1']], dim=0))
-                ys3d_test.append(torch.stack([ys['wmh_flthresh'], ys['wmh']], dim=0))
-    elif args.dataset.lower() == "challenge":
-        ds = WMHChallengeInterRaterDataset()
-        xs3d_test = []
-        ys3d_test = []
 
-        for (xs, ys, ind) in tqdm(ds):
-            if "wmho3" in ys.keys() and "wmho4" in ys.keys():
-                xs3d_test.append(torch.stack([xs['FLAIR'], xs['mask'], xs['T1']], dim=0))
-                ys3d_test.append(torch.stack([ys['wmho3'], ys['wmho4']], dim=0))
+    for (xs, ys, ind) in tqdm(mss3_ds):
+        if ind in ['MSS3_ED_073_V1', 'MSS3_ED_075_V1', 'MSS3_ED_078_V1', 'MSS3_ED_079_V1']:
+            print("found")
+            continue
+        if r0_id in ys.keys() and r1_id in ys.keys():
+            try:
+                x = torch.stack([xs['FLAIR'], xs['mask'], xs['T1']], dim=0)
+                y = torch.stack([ys[r0_id], ys[r1_id]], dim=0)
+
+                vent_distance_map = f"/home/s2208943/ipdis/data/preprocessed_data/{ds_ir_folder}/imgs/{ind}_T1_vent_distance.nii.gz"
+                vent_distance_map = sitk.ReadImage(vent_distance_map)
+                vent_distance_map = sitk.GetArrayFromImage(vent_distance_map)
+            except:
+                print(f"failed for {ind}")
+                continue
+
+            xs3d_test.append(x)
+            ys3d_test.append(y)
+            pv_region_masks.append(torch.from_numpy(vent_distance_map < 10).type(torch.float32))
     
     # configuring raters
     rater0 = [y[0] for y in ys3d_test]
@@ -754,7 +260,7 @@ def main(args):
     raters = [rater0, rater1]
     rater_results = [defaultdict(lambda : {}) for _ in range(len(raters))]
     overall_results = defaultdict(lambda: {})
-    pixelwise_results = defaultdict(lambda: {})
+    pixelwise_and_cc_results = defaultdict(lambda: {})
 
     print("loading model predictions")
     ns_init = 10 if args.uncertainty_type == "ens" else 30
@@ -836,15 +342,15 @@ def main(args):
                     print("pixelwise analysis")
                     JTP, JFP, JFN, IR = pixelwise_metrics(means, ent_maps, rater0, rater1, xs3d_test)
                     edJTP, edJFP, edJFN, edIR = edge_deducted_pixelwise_metrics(means, ent_maps, rater0, rater1, xs3d_test)
-                    pixelwise_results[num_samples]['JTP'] = JTP
-                    pixelwise_results[num_samples]['JFP'] = JFP
-                    pixelwise_results[num_samples]['JFN'] = JFN
-                    pixelwise_results[num_samples]['IR'] = IR
-                    pixelwise_results[num_samples]['edJTP'] = edJTP 
-                    pixelwise_results[num_samples]['edJFP'] = edJFP
-                    pixelwise_results[num_samples]['edJFN'] = edJFN
-                    pixelwise_results[num_samples]['edIR'] = edIR
-                    np.savez("/home/s2208943/ipdis/results/pixel_wise_inter_rater_stats/" + f"voxelwise_IRstats_{args.dataset}_{args.uncertainty_type}_cv{args.cv_split}_ns{num_samples}.npz", pixelwise_results[num_samples], allow_pickle=True)
+                    pixelwise_and_cc_results[num_samples]['JTP'] = JTP
+                    pixelwise_and_cc_results[num_samples]['JFP'] = JFP
+                    pixelwise_and_cc_results[num_samples]['JFN'] = JFN
+                    pixelwise_and_cc_results[num_samples]['IR'] = IR
+                    pixelwise_and_cc_results[num_samples]['edJTP'] = edJTP 
+                    pixelwise_and_cc_results[num_samples]['edJFP'] = edJFP
+                    pixelwise_and_cc_results[num_samples]['edJFN'] = edJFN
+                    pixelwise_and_cc_results[num_samples]['edIR'] = edIR
+                    np.savez("/home/s2208943/ipdis/results/pixel_wise_inter_rater_stats/" + f"voxelwise_IRstats_{args.dataset}_{args.uncertainty_type}_cv{args.cv_split}_ns{num_samples}.npz", pixelwise_and_cc_results[num_samples], allow_pickle=True)
 
                     print("volume difference distribution information")
                     vds_rater0, vds_rater1, vds_rater_mean, sample_vol_skew = vd_dist_and_skew(samples, rater0, rater1)
@@ -857,6 +363,22 @@ def main(args):
                         overall_results[num_samples][f'vds_rater_mean_sample{ns}'] = vds_rater_mean[:,ns]
                     overall_results[num_samples]['sample_vol_skew'] = sample_vol_skew
 
+                if num_samples == 10:
+                    print("COLLECTING ALL VVC2 RESULTS")
+                    ccv2_all_overall, ccv2_all_pixelwise_and_cc = connected_component_analysis_v2(means, ent_maps, rater0, rater1, pv_region_masks, region='all')
+                    print("COLLECTING DEEP VVC2 RESULTS")
+                    ccv2_deep_overall, ccv2_deep_pixelwise_and_cc = connected_component_analysis_v2(means, ent_maps, rater0, rater1, pv_region_masks, region='deep')
+                    print("COLLECTING PV VVC2 RESULTS")
+                    ccv2_pv_overall, ccv2_pv_pixelwise_and_cc = connected_component_analysis_v2(means, ent_maps, rater0, rater1, pv_region_masks, region='pv')
+                    
+                    pixelwise_and_cc_results[num_samples].update(ccv2_all_pixelwise_and_cc)
+                    pixelwise_and_cc_results[num_samples].update(ccv2_deep_pixelwise_and_cc)
+                    pixelwise_and_cc_results[num_samples].update(ccv2_pv_pixelwise_and_cc)
+                    
+                    overall_results[num_samples].update(ccv2_all_overall)
+                    overall_results[num_samples].update(ccv2_deep_overall)
+                    overall_results[num_samples].update(ccv2_pv_overall)
+                    
                 # best dice when sorting the sample for dice
                 print("best dice and GED results sorted by dice")
                 overall_results[num_samples]['GED_dice_sorted'] = []
