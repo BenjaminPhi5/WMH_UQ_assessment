@@ -279,7 +279,7 @@ def main(args):
 
     all_result_ns = [2, 10, 30]
     
-    for num_samples in [10]:#[2, 3, 5, 7, 10, 15, 20, 25, 30]:
+    for num_samples in [2, 3, 5, 7, 10, 15, 20, 25, 30]:
         overall_results[num_samples][f'rmses'] = rmses
         overall_results[num_samples][f'IR_rmses'] = IR_rmses
         print("NUM SAMPLES: ", num_samples)
@@ -389,8 +389,8 @@ def main(args):
                     pixelwise_and_cc_results[num_samples].update(ccv2_pv_pixelwise_and_cc)
                     np.savez("/home/s2208943/ipdis/results/pixel_wise_and_cc_inter_rater_stats/" + f"voxelwise_IRstats_{args.dataset}_{args.uncertainty_type}_cv{args.cv_split}_ns{num_samples}.npz", **pixelwise_and_cc_results[num_samples])
                     
-                    # overall_results[num_samples].update(ccv2_all_overall)
-                    # overall_results[num_samples].update(ccv2_deep_overall)
+                    overall_results[num_samples].update(ccv2_all_overall)
+                    overall_results[num_samples].update(ccv2_deep_overall)
                     overall_results[num_samples].update(ccv2_pv_overall)
                     
                 # best dice when sorting the sample for dice
