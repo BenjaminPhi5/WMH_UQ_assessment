@@ -249,6 +249,9 @@ def main(args):
             except:
                 print(f"failed for {ind}")
                 continue
+                
+            if x.shape[1] != vent_distance_map.shape[0] or x.shape[2] != vent_distance_map.shape[1] or x.shape[3] != vent_distance_map.shape[2]:
+                continue
 
             xs3d_test.append(x)
             ys3d_test.append(y)
@@ -276,7 +279,7 @@ def main(args):
 
     all_result_ns = [2, 10, 30]
     
-    for num_samples in [2, 3, 5, 7, 10, 15, 20, 25, 30]:
+    for num_samples in [10]:#[2, 3, 5, 7, 10, 15, 20, 25, 30]:
         overall_results[num_samples][f'rmses'] = rmses
         overall_results[num_samples][f'IR_rmses'] = IR_rmses
         print("NUM SAMPLES: ", num_samples)

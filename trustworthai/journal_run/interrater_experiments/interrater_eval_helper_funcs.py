@@ -737,8 +737,6 @@ def connected_component_analysis_v2(xs3d_test, means, ent_maps, rater0, rater1, 
             y1 = y1.cuda() * deep_region
             e = e * deep_region
             pred = pred * deep_region
-        else:
-            raise ValueError("region unknown")
 
         ccs_y0 = cc3d.connected_components(y0.cpu().type(torch.int32).numpy(), connectivity=26) # 26-connected
         ccs_y0 = torch.from_numpy(ccs_y0.astype(np.float32)).cuda()
