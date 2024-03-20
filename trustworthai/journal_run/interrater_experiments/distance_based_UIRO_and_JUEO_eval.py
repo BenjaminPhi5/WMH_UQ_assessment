@@ -314,14 +314,17 @@ def main(args):
         all_sdUIROs = torch.Tensor(all_sdUIROs)
         
         for di, d in enumerate(distance_thresholds):
-            overall_results[num_samples][f'soft_dUIRO_d{d:.2f}'] = all_sdUIROs[di]
-            overall_results[num_samples][f'soft_dJUEO_d{d:.2f}'] = all_sdJUEOs[di]
+            overall_results[num_samples][f'soft_dUIRO_d{d:.2f}'] = all_sdUIROs[:, di]
+            overall_results[num_samples][f'soft_dJUEO_d{d:.2f}'] = all_sdJUEOs[:, di]
             for ti, t in enumerate(uncertainty_thresholds):
-                overall_results[num_samples][f'dUIRO_curves_d{d:.2f}_t{t:.2f}'] = all_dUIROs[di,:,ti]
-                overall_results[num_samples][f'dJUEO_curves_d{d:.2f}_t{t:.2f}'] = all_dJUEOs[di,:,ti]
-
+                overall_results[num_samples][f'dUIRO_curves_d{d:.2f}_t{t:.2f}'] = all_dUIROs[:,di,ti]
+                overall_results[num_samples][f'dJUEO_curves_d{d:.2f}_t{t:.2f}'] = all_dJUEOs[:,di,ti]
+                
         overall_results[num_samples]['mean_gt_vols'] = mean_gt_vols
-
+                
+        for key, arr in overall_results[10].items():
+            print(key, " : ", len(arr))
+            
         path = "/home/s2208943/ipdis/WMH_UQ_assessment/trustworthai/journal_run/interrater_experiments/distance_based_overlap_results/"
         # for key in overall_results[num_samples].keys():
             # print(key, len(overall_results[num_samples][key]))
