@@ -960,3 +960,56 @@ def connected_component_analysis_v2(xs3d_test, means, ent_maps, rater0, rater1, 
                                }
     
     return overall_results, pixelwise_and_cc_results
+
+def dJUEO(pred, thresholded_umap, IR, IR_distmap, ME, ME_distmap, d_threshold):
+    
+    dthresholded_umap = thresholded_umap * torch.logical_or(IR_distmap >= d_threshold, ME_distmap < d_threshold)
+    
+    return fast_dice(dthresholded_umap, ME)
+
+def dUIRO(pred, thresholded_umap, IR, IR_distmap, ME, ME_distmap, d_threshold):
+    
+    dthresholded_umap = thresholded_umap * torch.logical_or(IR_distmap < d_threshold, ME_distmap >= d_threshold)
+    
+    return fast_dice(dthresholded_umap, IR)
+
+def soft_dJUEO(pred, umap, IR, IR_distmap, ME, ME_distmap, d_threshold):
+    
+    dumap = umap * torch.logical_or(IR_distmap >= d_threshold, ME_distmap < d_threshold)
+    
+    return soft_dice(dumap, ME)
+
+def soft_dUIRO(pred, umap, IR, IR_distmap, ME, ME_distmap, d_threshold):
+    
+    dumap = umap * torch.logical_or(IR_distmap < d_threshold, ME_distmap >= d_threshold)
+    
+    return soft_dice(dumap, IR)
+
+def perform_d_UEO_analysis(pred, umap, seg1, seg2, uncertainty_thresholds):
+    sdJUEOs = []
+    sdUIROs = []
+    dUIROs = []
+    dJUEOs = []
+    
+    ir = (seg1 != seg2)
+    ir_distmap = get_distance_map(ir)
+    
+    me = (seg1 == seg2) * (seg1 != pred)
+    me_distmap = get_distance_map(me)
+    
+    # when d_threshold = 0.5, this is equivalent to just masking out the exact pixels.
+    distance_thresholds = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
+    for d_threshold in distance_thresholds:
+        sdJUEOs.append(soft_dJUEO(pred, umap, ir, ir_distmap, me, me_distmap, d_threshold))
+        sdUIROs.append(soft_dUIRO(pred, umap, ir, ir_distmap, me, me_distmap, d_threshold))
+        UIRO = []
+        JUEO = []
+        for t in uncertainty_thresholds:
+            tumap = umap > t
+            JUEO.append(dJUEO(pred, tumap, ir, ir_distmap, me, me_distmap, d_threshold))
+            UIRO.append(dUIRO(pred, tumap, ir, ir_distmap, me, me_distmap, d_threshold))
+    
+        dJUEOs.append(JUEO)
+        dUIROs.append(UIRO)
+        
+    return sdJUEOs, sdUIROs, dJUEOs, dUIROs, distance_thresholds
